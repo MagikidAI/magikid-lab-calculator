@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MAGIKID LAB运营模拟计算器</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; background: #f0f4f8; min-height: 100vh; color: #333; }
+    .container { max-width: 1500px; margin: 0 auto; padding: 24px; }
+    header { text-align: center; padding: 20px 0; background: white; border-radius: 14px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    header h1 { color: #2E86AB; font-size: 26px; margin-bottom: 6px; }
+    header p { color: #666; font-size: 13px; }
+    .header-row { display: flex; justify-content: space-between; align-items: center; padding: 0 24px; }
+    .lang-toggle { display: flex; gap: 6px; }
+    .lang-btn { background: white; border: 2px solid #ddd; color: #666; padding: 6px 14px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.2s; }
+    .lang-btn:hover { border-color: #2E86AB; color: #2E86AB; }
+    .lang-btn.active { background: #2E86AB; border-color: #2E86AB; color: white; }
+    .main-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media (max-width: 1024px) { .main-grid { grid-template-columns: 1fr; } }
+    .card { background: white; border-radius: 14px; padding: 20px; box-shadow: 0 6px 24px rgba(0,0,0,0.2); margin-bottom: 18px; }
+    .card-title { font-size: 16px; font-weight: 700; color: #2E86AB; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+    .card-title::before { content: ''; width: 4px; height: 18px; background: #2E86AB; border-radius: 2px; }
+    .section { margin-bottom: 18px; }
+    .section-title { font-size: 12px; font-weight: 700; color: #555; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; background: #f5f7fa; padding: 6px 10px; border-radius: 6px; }
+    .section-note { font-size: 11px; color: #e67e22; margin: -4px 0 8px 0; padding: 4px 8px; background: #fef9f0; border-left: 3px solid #e67e22; border-radius: 2px; }
+    
+    /* 分块标签：收入(绿) / 成本(橙) */
+    .block-label { display: inline-block; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 12px; margin-bottom: 8px; }
+    .block-rev { background: #e8f8f0; color: #27ae60; border: 1px solid #a3d9b8; }
+    .block-cost { background: #fef5e7; color: #e67e22; border: 1px solid #f5c99a; }
+    .input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+    .input-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+    .input-group { display: flex; flex-direction: column; }
+    .input-group label { font-size: 12px; color: #666; margin-bottom: 3px; }
+    .input-group input { padding: 9px 10px; border: 2px solid #e8e8e8; border-radius: 7px; font-size: 13px; font-family: 'Courier New', monospace; transition: border-color 0.2s; background: #fafafa; }
+    .input-group input:focus { outline: none; border-color: #2E86AB; background: white; }
+    /* 收入输入-绿色边框 */
+    .input-group.rev input { border-color: #a3d9b8; background: #f0faf4; }
+    .input-group.rev input:focus { border-color: #27ae60; background: white; }
+    /* 成本输入-橙色边框 */
+    .input-group.cost input { border-color: #f5c99a; background: #fff9f0; }
+    .input-group.cost input:focus { border-color: #e67e22; background: white; }
+
+    /* Results */
+    .result-card { border-radius: 10px; padding: 16px; margin-bottom: 12px; color: white; }
+    .rc-blue { background: linear-gradient(135deg, #2E86AB, #1a5276); }
+    .rc-green { background: linear-gradient(135deg, #27ae60, #1e8449); }
+    .rc-orange { background: linear-gradient(135deg, #e67e22, #d35400); }
+    .rc-red { background: linear-gradient(135deg, #e74c3c, #c0392b); }
+    .rc-purple { background: linear-gradient(135deg, #8e44ad, #6c3483); }
+    .result-label { font-size: 12px; opacity: 0.9; margin-bottom: 3px; }
+    .result-value { font-size: 26px; font-weight: 700; }
+    .result-sub { font-size: 11px; opacity: 0.8; margin-top: 3px; }
+
+    .kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 12px; }
+    .kpi-item { background: #f8f9fa; padding: 12px; border-radius: 8px; text-align: center; }
+    .kpi-item .k-label { font-size: 11px; color: #888; }
+    .kpi-item .k-val { font-size: 18px; font-weight: 700; color: #2E86AB; margin-top: 3px; }
+
+    /* Breakdown tables */
+    .bd-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 8px; }
+    .bd-table th { background: #2E86AB; color: white; padding: 6px 8px; text-align: left; }
+    .bd-table th:last-child, .bd-table td:last-child { text-align: right; }
+    .bd-table td { padding: 6px 8px; border-bottom: 1px solid #f0f0f0; }
+    .bd-table tr:nth-child(even) td { background: #f9f9f9; }
+    .bd-table .total-row td { font-weight: 700; background: #e8f4f8; }
+
+    /* Quarter grid */
+    .quarter-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 10px; }
+    .q-item { background: #f0f8ff; border-radius: 8px; padding: 10px; text-align: center; font-size: 12px; }
+    .q-item .q-label { font-weight: 700; color: #2E86AB; margin-bottom: 4px; }
+    .q-item .q-rev { color: #27ae60; font-weight: 600; }
+    .q-item .q-cost { color: #e74c3c; font-size: 11px; }
+
+    /* Monthly */
+    .month-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 10px; }
+    .month-item { background: #f8f9fa; padding: 10px; border-radius: 8px; text-align: center; font-size: 12px; }
+    .month-item .m-name { color: #555; font-weight: 700; }
+    .month-item .m-rev { color: #27ae60; margin: 3px 0; }
+    .month-item .m-cost { color: #e67e22; font-size: 11px; }
+    .month-item .m-cf { font-size: 11px; font-weight: 700; }
+    .positive .m-cf { color: #27ae60; }
+    .negative .m-cf { color: #e74c3c; }
+
+    .tag { display: inline-block; background: #e8f4f8; color: #2E86AB; padding: 3px 9px; border-radius: 12px; font-size: 11px; margin: 3px; }
+    .tag.orange { background: #fef0e0; color: #e67e22; }
+    .tag.green { background: #e8f8f0; color: #27ae60; }
+    .tag.red { background: #fde8e7; color: #e74c3c; }
+
+    .export-btn { background: linear-gradient(135deg, #2E86AB, #1a5276); color: white; border: none; padding: 12px; border-radius: 8px; font-size: 14px; cursor: pointer; width: 100%; margin-top: 12px; transition: opacity 0.2s; }
+    .export-btn:hover { opacity: 0.85; }
+    
+    /* Divider */
+    .divider { border: none; border-top: 1px solid #f0f0f0; margin: 12px 0; }
+    
+    /* Year 2 Comparison */
+    .section-header { text-align: center; margin: 24px 0; }
+    .lang-toggle { background: #3498db; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 16px; cursor: pointer; }
+    .lang-toggle:hover { background: #2980b9; }
+    .y2-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 20px; }
+    .y2-item { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 12px; text-align: center; }
+    .y2-item:nth-child(3) { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); }
+    .y2-label { font-size: 14px; opacity: 0.9; }
+    .y2-y1, .y2-y2, .y2-growth { font-size: 24px; font-weight: bold; margin-top: 8px; }
+    #y2-table tr td:last-child { color: #27ae60; font-weight: bold; }
+    
+    /* 项目收益卡片 */
+    .proj-summary { margin-top: 14px; padding-top: 12px; border-top: 2px dashed #e0e0e0; }
+    .proj-summary-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; font-size: 12px; }
+    .proj-summary-row .proj-label { color: #666; }
+    .proj-summary-row .proj-val { font-weight: 700; font-family: 'Courier New', monospace; }
+    .proj-rev { color: #27ae60; }
+    .proj-cost { color: #e67e22; }
+    .proj-profit { color: #2E86AB; }
+    .proj-profit.positive { color: #27ae60; }
+    .proj-profit.negative { color: #e74c3c; }
+    .proj-summary-header { font-size: 11px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="header-row">
+      <div>
+        <h1 id="title">🏫 MAGIKID LAB运营模拟计算器</h1>
+        <p id="subtitle">输入参数 → 自动计算投入产出 | 货币: USD</p>
+      </div>
+      <div class="lang-toggle">
+        <button class="lang-btn active" id="btn-zh" onclick="setLang('zh')">中文</button>
+        <button class="lang-btn" id="btn-en" onclick="setLang('en')">English</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="main-grid">
+    <!-- ======== LEFT: INPUTS ======== -->
+    <div>
+      <!-- Startup Costs -->
+      <div class="card">
+        <div class="card-title" id="startup-title">💰 启动成本 (Y0)</div>
+        <div class="input-row">
+          <div class="input-group"><label id="lbl-franchise">加盟费 (5年)</label><input type="number" id="franchise" value="55000"></div>
+          <div class="input-group"><label id="lbl-deposit">押金</label><input type="number" id="deposit" value="10000"></div>
+        </div>
+        <div class="input-row">
+          <div class="input-group"><label id="lbl-equipment">设备 (机器人/iPad)</label><input type="number" id="equipment" value="25000"></div>
+          <div class="input-group"><label id="lbl-furniture">办公家具</label><input type="number" id="furniture" value="5000"></div>
+        </div>
+        <div class="input-row">
+          <div class="input-group"><label id="lbl-signage">招牌</label><input type="number" id="signage" value="3000"></div>
+          <div class="input-group"><label id="lbl-improvement">装修</label><input type="number" id="improvement" value="25000"></div>
+        </div>
+        <div class="input-row">
+          <div class="input-group"><label id="lbl-rent-deposit">房租押金</label><input type="number" id="rent_deposit" value="3800"></div>
+          <div class="input-group"><label id="lbl-insurance">保险费用 (预估)</label><input type="number" id="insurance" value="2000"></div>
+        </div>
+        <div class="input-row">
+          <div class="input-group"><label id="lbl-license">公司开设/许可证/City审核等 (预估)</label><input type="number" id="license" value="4000"></div>
+        </div>
+        <div class="input-row">
+          <div class="input-group"><label id="lbl-cpa">财务CPA及软件费用 (预估)</label><input type="number" id="cpa" value="2000"></div>
+          <div class="input-group"><label id="lbl-legal">法律费用 (预估)</label><input type="number" id="legal" value="2000"></div>
+        </div>
+        <div class="input-row">
+          <div class="input-group"><label id="lbl-training">培训和开业费用</label><input type="number" id="training" value="3000"></div>
+        </div>
+      </div>
+
+      <!-- Fixed Monthly Costs -->
+      <div class="card">
+        <div class="card-title" id="fixed-cost-title">🏠 每月固定成本</div>
+        <div class="input-row">
+          <div class="input-group"><label id="lbl-manager">经理薪资 (含税险)</label><input type="number" id="manager_salary" value="4000"></div>
+          <div class="input-group"><label id="lbl-rent">房租/月</label><input type="number" id="rent_monthly" value="3800"></div>
+          <div class="input-group"><label id="lbl-utilities">水电费/月</label><input type="number" id="utilities" value="200"></div>
+          <div class="input-group"><label id="lbl-garbage">垃圾费/月</label><input type="number" id="garbage" value="100"></div>
+          <div class="input-group"><label id="lbl-supplies">食品杂务费/月</label><input type="number" id="supplies" value="200"></div>
+        </div>
+      </div>
+
+      <!-- Group Sessions -->
+      <div class="card">
+        <div class="card-title" id="group-title">🧑‍🤝‍🧑 小组课 Group Sessions</div>
+        <div class="section-note" id="group-note">每增3个会员 → +$200/月教师费（按季展示）</div>
+        
+        <div class="input-row" style="margin-top:12px;">
+          <span class="block-label block-rev">💰 收入</span>
+          <span class="block-label block-cost">📋 成本</span>
+        </div>
+        <div class="input-row">
+          <div class="input-group rev"><label id="lbl-group-monthly">月费/人 ($)</label><input type="number" id="group_monthly" value="200"></div>
+          <div class="input-group rev"><label id="lbl-group-cap">会员上限</label><input type="number" id="group_cap" value="60"></div>
+          <div class="input-group cost"><label id="lbl-group-per3">每3人+/月 ($)</label><input type="number" id="group_instr_per3" value="200"></div>
+        </div>
+        
+        <div class="input-row" style="margin-top:14px;">
+          <span class="block-label block-rev">📈 增长</span>
+        </div>
+        <div class="input-row-3">
+          <div class="input-group"><label id="lbl-group-add1">1-3月 新增/月</label><input type="number" id="group_add1" value="20"></div>
+          <div class="input-group"><label id="lbl-group-churn1">1-3月 流失/月</label><input type="number" id="group_churn1" value="0"></div>
+        </div>
+        <div class="input-row-3">
+          <div class="input-group"><label id="lbl-group-add2">4-6月 新增/月</label><input type="number" id="group_add2" value="10"></div>
+          <div class="input-group"><label id="lbl-group-churn2">4-6月 流失/月</label><input type="number" id="group_churn2" value="6"></div>
+        </div>
+        <div class="input-row-3">
+          <div class="input-group"><label id="lbl-group-add3">7-12月 新增/月</label><input type="number" id="group_add3" value="8"></div>
+          <div class="input-group"><label id="lbl-group-churn3">7-12月 流失/月</label><input type="number" id="group_churn3" value="4"></div>
+        </div>
+        
+        <!-- 全年收益汇总 -->
+        <div class="proj-summary" id="group-summary">
+          <div class="proj-summary-header">📊 全年收益</div>
+          <div class="proj-summary-row"><span class="proj-label">年收入</span><span class="proj-val proj-rev" id="group-summary-rev">$0</span></div>
+          <div class="proj-summary-row"><span class="proj-label">年成本</span><span class="proj-val proj-cost" id="group-summary-cost">$0</span></div>
+          <div class="proj-summary-row"><span class="proj-label">净利润</span><span class="proj-val proj-profit" id="group-summary-profit">$0</span></div>
+        </div>
+      </div>
+
+      <!-- AI Competition -->
+      <div class="card">
+        <div class="card-title" id="private-title">🎯 AI竞赛班 初中组/高中组</div>
+        <div class="section-note" id="private-note">每增4人+$320/月成本；上限16人</div>
+        
+        <div class="input-row" style="margin-top:12px;">
+          <span class="block-label block-rev">💰 收入</span>
+          <span class="block-label block-cost">📋 成本</span>
+        </div>
+        <div class="input-row">
+          <div class="input-group rev"><label id="lbl-private-monthly">月费/人 ($)</label><input type="number" id="private_monthly" value="800"></div>
+          <div class="input-group rev"><label id="lbl-private-cap">上限 (人)</label><input type="number" id="private_cap" value="4"></div>
+          <div class="input-group cost"><label id="lbl-private-cost">每4人+/月 ($)</label><input type="number" id="private_cost" value="320"></div>
+        </div>
+        
+        <div class="input-row" style="margin-top:14px;">
+          <span class="block-label block-rev">📈 增长</span>
+        </div>
+        <div class="input-row">
+          <div class="input-group"><label id="lbl-private-add">每月新增</label><input type="number" id="private_add" value="1"></div>
+        </div>
+        
+        <!-- 全年收益汇总 -->
+        <div class="proj-summary">
+          <div class="proj-summary-header">📊 全年收益</div>
+          <div class="proj-summary-row"><span class="proj-label">年收入</span><span class="proj-val proj-rev" id="private-summary-rev">$0</span></div>
+          <div class="proj-summary-row"><span class="proj-label">年成本</span><span class="proj-val proj-cost" id="private-summary-cost">$0</span></div>
+          <div class="proj-summary-row"><span class="proj-label">净利润</span><span class="proj-val proj-profit" id="private-summary-profit">$0</span></div>
+        </div>
+      </div>
+
+      <!-- VEX IQ -->
+      <div class="card">
+        <div class="card-title" id="vex-title">🤖 VEX IQ 竞赛队</div>
+        <div class="section-note" id="vex-note">初期教练费$1000/月；每增4人 +$1000/月教练费 +$1000全年设备费</div>
+        
+        <div class="input-row" style="margin-top:12px;">
+          <span class="block-label block-rev">💰 收入</span>
+          <span class="block-label block-cost">📋 成本</span>
+        </div>
+        <div class="input-row">
+          <div class="input-group rev"><label id="lbl-vex-monthly">月费/人 ($)</label><input type="number" id="vex_monthly" value="799"></div>
+          <div class="input-group rev"><label id="lbl-vex-cap">成员上限</label><input type="number" id="vex_cap" value="20"></div>
+          <div class="input-group cost"><label id="lbl-vex-coach-base">初期教练费/月</label><input type="number" id="vex_coach_base" value="1000"></div>
+        </div>
+        <div class="input-row">
+          <div class="input-group cost"><label id="lbl-vex-coach-per4">每4人增加教练费/月</label><input type="number" id="vex_coach_per4" value="1000"></div>
+          <div class="input-group cost"><label id="lbl-vex-equip-per4">每4人增加设备费/年</label><input type="number" id="vex_equip_per4" value="1000"></div>
+        </div>
+        
+        <div class="input-row" style="margin-top:14px;">
+          <span class="block-label block-rev">📈 增长</span>
+        </div>
+        <div class="input-row">
+          <div class="input-group"><label id="lbl-vex-add">每月新增成员</label><input type="number" id="vex_add" value="4"></div>
+        </div>
+        
+        <!-- 全年收益汇总 -->
+        <div class="proj-summary">
+          <div class="proj-summary-header">📊 全年收益</div>
+          <div class="proj-summary-row"><span class="proj-label">年收入</span><span class="proj-val proj-rev" id="vex-summary-rev">$0</span></div>
+          <div class="proj-summary-row"><span class="proj-label">年成本</span><span class="proj-val proj-cost" id="vex-summary-cost">$0</span></div>
+          <div class="proj-summary-row"><span class="proj-label">净利润</span><span class="proj-val proj-profit" id="vex-summary-profit">$0</span></div>
+        </div>
+      </div>
+
+      <!-- AI Team -->
+      <div class="card">
+        <div class="card-title" id="ai-title">🧠 AI 竞赛队</div>
+        <div class="section-note" id="ai-note">每增3人 +$1000/月教练费 +$2000全年设备费；上限18人</div>
+        
+        <div class="input-row" style="margin-top:12px;">
+          <span class="block-label block-rev">💰 收入</span>
+          <span class="block-label block-cost">📋 成本</span>
+        </div>
+        <div class="input-row">
+          <div class="input-group rev"><label id="lbl-ai-monthly">月费/人 ($)</label><input type="number" id="ai_monthly" value="799"></div>
+          <div class="input-group rev"><label id="lbl-ai-cap">成员上限</label><input type="number" id="ai_cap" value="18"></div>
+          <div class="input-group cost"><label id="lbl-ai-coach-per3">每3人增加教练费/月</label><input type="number" id="ai_coach_per3" value="1000"></div>
+        </div>
+        <div class="input-row">
+          <div class="input-group cost"><label id="lbl-ai-equip-per3">每3人增加设备费/年</label><input type="number" id="ai_equip_per3" value="2000"></div>
+        </div>
+        
+        <div class="input-row" style="margin-top:14px;">
+          <span class="block-label block-rev">📈 增长</span>
+        </div>
+        <div class="input-row">
+          <div class="input-group"><label id="lbl-ai-add">每月新增成员</label><input type="number" id="ai_add" value="3"></div>
+        </div>
+        
+        <!-- 全年收益汇总 -->
+        <div class="proj-summary">
+          <div class="proj-summary-header">📊 全年收益</div>
+          <div class="proj-summary-row"><span class="proj-label">年收入</span><span class="proj-val proj-rev" id="ai-summary-rev">$0</span></div>
+          <div class="proj-summary-row"><span class="proj-label">年成本</span><span class="proj-val proj-cost" id="ai-summary-cost">$0</span></div>
+          <div class="proj-summary-row"><span class="proj-label">净利润</span><span class="proj-val proj-profit" id="ai-summary-profit">$0</span></div>
+        </div>
+      </div>
+
+      <!-- Summer Camp -->
+      <div class="card">
+        <div class="card-title" id="camp-title">⛺ CAMP (夏令营/冬令营/感恩节等)</div>
+        <div class="section-note" id="camp-note">CAMP分布: 2月5天/3月5天/6月15天/7月20天/8月20天/11月4天/12月15天 共84天</div>
+        
+        <div class="input-row" style="margin-top:12px;">
+          <span class="block-label block-rev">💰 收入</span>
+          <span class="block-label block-cost">📋 成本</span>
+        </div>
+        <div class="input-row">
+          <div class="input-group rev"><label id="lbl-camp-days">总天数</label><input type="number" id="camp_days" value="84"></div>
+          <div class="input-group rev"><label id="lbl-camp-students">每天学员人数</label><input type="number" id="camp_students" value="5"></div>
+          <div class="input-group cost"><label id="lbl-camp-teacher">老师日费/人 ($)</label><input type="number" id="camp_teacher" value="150"></div>
+        </div>
+        <div class="input-row">
+          <div class="input-group rev"><label id="lbl-camp-daily">学员日费/人 ($)</label><input type="number" id="camp_daily" value="100"></div>
+        </div>
+        
+        <!-- 全年收益汇总 -->
+        <div class="proj-summary">
+          <div class="proj-summary-header">📊 全年收益</div>
+          <div class="proj-summary-row"><span class="proj-label">年收入</span><span class="proj-val proj-rev" id="camp-summary-rev">$0</span></div>
+          <div class="proj-summary-row"><span class="proj-label">年成本</span><span class="proj-val proj-cost" id="camp-summary-cost">$0</span></div>
+          <div class="proj-summary-row"><span class="proj-label">净利润</span><span class="proj-val proj-profit" id="camp-summary-profit">$0</span></div>
+        </div>
+      </div>
+
+      <!-- Party -->
+      <div class="card">
+        <div class="card-title" id="party-title">🎉 派对/活动</div>
+        
+        <div class="input-row" style="margin-top:12px;">
+          <span class="block-label block-rev">💰 收入</span>
+        </div>
+        <div class="input-row">
+          <div class="input-group rev"><label id="lbl-party">每次收入 ($)</label><input type="number" id="party" value="2000"></div>
+          <div class="input-group rev"><label id="lbl-party-monthly">每月场次</label><input type="number" id="party_monthly" value="2"></div>
+        </div>
+        
+        <!-- 全年收益汇总 -->
+        <div class="proj-summary">
+          <div class="proj-summary-header">📊 全年收益</div>
+          <div class="proj-summary-row"><span class="proj-label">年收入</span><span class="proj-val proj-rev" id="party-summary-rev">$0</span></div>
+          <div class="proj-summary-row"><span class="proj-label">年成本</span><span class="proj-val proj-cost" id="party-summary-cost">$0</span></div>
+          <div class="proj-summary-row"><span class="proj-label">净利润</span><span class="proj-val proj-profit" id="party-summary-profit">$0</span></div>
+        </div>
+      </div>
+
+      <button class="export-btn" onclick="exportPDF()">📥 导出图片</button>
+      <button class="export-btn" onclick="exportData()">📥 导出 JSON</button>
+    </div>
+
+    <!-- ======== RIGHT: RESULTS ======== -->
+    <div>
+      <!-- Key Metrics -->
+      <div class="card">
+        <div class="card-title" id="annual-title">📈 Y1 年度汇总</div>
+
+        <div class="result-card rc-blue">
+          <div class="result-label" id="lbl-startup-total">启动总投入 (Y0)</div>
+          <div class="result-value" id="startup_total">$0</div>
+          <div class="result-sub" id="startup_detail">-</div>
+        </div>
+
+        <div class="result-card rc-green">
+          <div class="result-label" id="lbl-annual-rev">Y1 年收入</div>
+          <div class="result-value" id="annual_rev">$0</div>
+          <div class="result-sub" id="annual_rev_sub">月均 $0</div>
+        </div>
+
+        <div class="result-card rc-orange">
+          <div class="result-label" id="lbl-annual-cost">Y1 总运营成本</div>
+          <div class="result-value" id="annual_cost">$0</div>
+          <div class="result-sub" id="cost_sub">含教师/教练/设备费</div>
+        </div>
+
+        <div class="result-card rc-blue">
+          <div class="result-label" id="lbl-ebitda">Y1 EBITDA</div>
+          <div class="result-value" id="ebitda">$0</div>
+          <div class="result-sub" id="ebitda_margin">利润率: 0%</div>
+        </div>
+
+        <div class="result-card rc-red">
+          <div class="result-label" id="lbl-net-cf">Y1 净现金流 (含启动成本)</div>
+          <div class="result-value" id="net_cf">$0</div>
+          <div class="result-sub" id="net_cf_sub">-</div>
+        </div>
+
+        <div class="kpi-grid">
+          <div class="kpi-item"><div class="k-label" id="lbl-end-members">年底会员数</div><div class="k-val" id="end_members">0</div></div>
+          <div class="kpi-item"><div class="k-label" id="lbl-breakeven">盈亏平衡/月</div><div class="k-val" id="breakeven">-</div></div>
+          <div class="kpi-item"><div class="k-label" id="lbl-payback">回本周期</div><div class="k-val" id="payback">-</div></div>
+        </div>
+      </div>
+
+      <!-- Revenue Breakdown -->
+      <div class="card">
+        <div class="card-title" id="rev-title">💵 收入明细</div>
+        <table class="bd-table" id="rev-table"></table>
+      </div>
+
+      <!-- Teacher Cost Breakdown -->
+      <div class="card">
+        <div class="card-title" id="teacher-title">👨‍🏫 教师费用说明</div>
+        <table class="bd-table" id="teacher-table"></table>
+      </div>
+
+      <!-- Cost Breakdown -->
+      <div class="card">
+        <div class="card-title" id="cost-title">📋 成本明细 (年度)</div>
+        <table class="bd-table" id="cost-table"></table>
+      </div>
+
+      <!-- Group Sessions Quarterly Teacher Cost -->
+      <div class="card">
+        <div class="card-title" id="quarter-title">📊 小组课季度教师费用</div>
+        <div class="quarter-grid" id="quarter_grid"></div>
+      </div>
+
+      <!-- Monthly CF -->
+      <div class="card">
+        <div class="card-title" id="monthly-title">📅 月度现金流明细</div>
+        <div class="month-grid" id="month_grid"></div>
+      </div>
+      
+      <!-- Year 2 Monthly -->
+      <div class="card">
+        <div class="card-title">📈 Year 2 月度预测 (学生 +50%)</div>
+        <div class="month-grid" id="month_grid2"></div>
+      </div>
+      
+      <!-- Investment Recovery -->
+      <div class="card">
+        <div class="card-title">🎯 投资回报分析</div>
+        <div class="kpi-grid">
+          <div class="kpi-item"><div class="k-label">投资回收月份</div><div class="k-val" id="payback_month">-</div></div>
+          <div class="kpi-item"><div class="k-label">24月累计现金流</div><div class="k-val" id="cum_cf_24">-</div></div>
+          <div class="kpi-item"><div class="k-label">Y1 利润率</div><div class="k-val" id="margin_y1">-</div></div>
+          <div class="kpi-item"><div class="k-label">Y2 利润率</div><div class="k-val" id="margin_y2">-</div></div>
+        </div>
+        <div class="recovery-bar" id="recovery_bar"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const T = {
+  zh: {
+    title:'🏫 MAGIKID LAB运营模拟计算器', subtitle:'输入参数 → 自动计算投入产出 | 货币: USD',
+    'startup-title':'💰 启动成本 (Y0)',
+    'lbl-franchise':'加盟费 (5年)','lbl-deposit':'押金','lbl-equipment':'设备 (机器人/iPad)',
+    'lbl-furniture':'办公家具','lbl-signage':'招牌','lbl-improvement':'装修','lbl-rent-deposit':'房租押金',
+    'lbl-insurance':'保险费用 (预估)','lbl-license':'公司开设/许可证/City审核等 (预估)','lbl-cpa':'财务CPA及软件费用 (预估)','lbl-legal':'法律费用 (预估)','lbl-training':'培训和开业费用',
+    'fixed-cost-title':'🏠 每月固定成本','lbl-manager':'经理薪资 (含税险)','lbl-rent':'房租/月','lbl-utilities':'水电费/月','lbl-garbage':'垃圾费/月','lbl-supplies':'食品杂务费/月',
+    'group-title':'🧑‍🤝‍🧑 小组课 Group Sessions','group-note':'每增3个会员 → +$200/月教师费（按季展示）',
+    'lbl-group-monthly':'月费/人 ($)','lbl-group-cap':'会员上限',
+    'lbl-group-add1':'1-3月 新增/月','lbl-group-churn1':'1-3月 流失/月',
+    'lbl-group-add2':'4-6月 新增/月','lbl-group-churn2':'4-6月 流失/月',
+    'lbl-group-add3':'7-12月 新增/月','lbl-group-churn3':'7-12月 流失/月',
+    'private-title':'🎯 AI竞赛班 初中组/高中组','private-note':'每增4人+$320/月成本；上限16人',
+    'lbl-private-monthly':'月费/人 ($)','lbl-private-cost':'成本/人/月 ($)',
+    'lbl-private-add':'每月新增','lbl-private-cap':'上限 (人)',
+    'vex-title':'🤖 VEX IQ 竞赛队','vex-note':'初期教练费$1000/月；每增4人 +$1000/月教练费 +$1000全年设备费',
+    'lbl-vex-monthly':'月费/人 ($)','lbl-vex-cap':'成员上限','lbl-vex-add':'每月新增成员',
+    'lbl-vex-coach-base':'初期教练费/月','lbl-vex-coach-per4':'每4人增加教练费/月','lbl-vex-equip-per4':'每4人增加设备费/年',
+    'ai-title':'🧠 AI 竞赛队','ai-note':'每增3人 +$1000/月教练费 +$2000全年设备费；上限18人',
+    'lbl-ai-monthly':'月费/人 ($)','lbl-ai-cap':'成员上限','lbl-ai-add':'每月新增成员',
+    'lbl-ai-coach-per3':'每3人增加教练费/月','lbl-ai-equip-per3':'每3人增加设备费/年',
+    'camp-title':'⛺ CAMP (夏令营/冬令营/感恩节等)','camp-note':'收入 = 总天数 × 每天人数 × 学员日费；老师成本 = 总天数 × 1名老师 × 老师日费',
+    'lbl-camp-days':'总天数','lbl-camp-students':'每天学员人数',
+    'lbl-camp-daily':'学员日费/人 ($)','lbl-camp-teacher':'老师日费 ($)',
+    'party-title':'🎉 派对/活动','lbl-party':'每次收入 ($)','lbl-party-monthly':'每月场次',
+    'export-btn':'📥 导出参数 JSON',
+    'annual-title':'📈 Y1 年度汇总',
+    'lbl-startup-total':'启动总投入 (Y0)','lbl-annual-rev':'Y1 年收入','lbl-annual-cost':'Y1 总运营成本',
+    'lbl-ebitda':'Y1 EBITDA','lbl-net-cf':'Y1 净现金流 (含启动成本)',
+    'lbl-end-members':'年底会员数','lbl-breakeven':'盈亏平衡/月','lbl-payback':'回本周期',
+    'rev-title':'💵 收入明细','teacher-title':'👨‍🏫 教师费用说明','cost-title':'📋 成本明细 (年度)',
+    'quarter-title':'📊 小组课季度教师费用','monthly-title':'📅 月度现金流明细',
+    months:['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'],
+    quarters:['Q1 (1-3月)','Q2 (4-6月)','Q3 (7-9月)','Q4 (10-12月)'],
+    'rev-group':'小组课','rev-private':'AI竞赛班','rev-vex':'VEX IQ',
+    'rev-ai':'AI 赛队','rev-camp':'CAMP','rev-party':'派对/活动',
+    'cost-manager':'经理薪资','cost-rent':'房租','cost-utilities':'水电/垃圾/杂务费','cost-royalty':'总部Royalty费 (8%)',
+    'cost-group-instr':'小组课教师费','cost-private-cost':'私教课教练费',
+    'cost-vex-coach':'VEX教练费','cost-vex-equip':'VEX设备费(年)',
+    'cost-ai-coach':'AI教练费','cost-ai-equip':'AI设备费(年)',
+    'cost-camp':'CAMP老师成本','payback-yr':'年','payback-over':'>5年','/mo':'/月',
+    'total':'合计','avg-members':'月底均值','instr-cost-lbl':'教师费',
+  },
+  en: {
+    title:'🏫 MAGIKID LAB Operations Simulator', subtitle:'Enter parameters → Auto-calculate ROI | Currency: USD',
+    'startup-title':'💰 Startup Costs (Y0)',
+    'lbl-franchise':'Franchise Fee (5yr)','lbl-deposit':'Security Deposit','lbl-equipment':'Equipment',
+    'lbl-furniture':'Furniture','lbl-signage':'Signage','lbl-improvement':'Space Improvement','lbl-rent-deposit':'Rent Deposit',
+    'lbl-insurance':'Insurance (Est.)','lbl-license':'Business License/Permits/City Approval (Est.)','lbl-cpa':'CPA & Accounting Software (Est.)','lbl-legal':'Legal Fees (Est.)','lbl-training':'Training & Opening Costs',
+    'fixed-cost-title':'🏠 Monthly Fixed Costs','lbl-manager':'Manager Salary','lbl-rent':'Rent/Month','lbl-utilities':'Utilities/Mo','lbl-garbage':'Garbage/Mo','lbl-supplies':'Food & Supplies/Mo',
+    'group-title':'🧑‍🤝‍🧑 Group Sessions','group-note':'Every +3 members → +$200/mo instructor (by quarter)',
+    'lbl-group-monthly':'Monthly Fee/Person ($)','lbl-group-cap':'Member Cap',
+    'lbl-group-add1':'Jan-Mar New/Mo','lbl-group-churn1':'Jan-Mar Churn/Mo',
+    'lbl-group-add2':'Apr-Jun New/Mo','lbl-group-churn2':'Apr-Jun Churn/Mo',
+    'lbl-group-add3':'Jul-Dec New/Mo','lbl-group-churn3':'Jul-Dec Churn/Mo',
+    'private-title':'🎯 AI Competition Jr/High','private-note':'+$320/mo per 4 students; max 16',
+    'lbl-private-monthly':'Monthly Fee/Person ($)','lbl-private-cost':'Cost/Person/Month ($)',
+    'lbl-private-add':'New/Month','lbl-private-cap':'Cap (persons)',
+    'vex-title':'🤖 VEX IQ Team','vex-note':'Base coach $1000/mo; per 4 students +$1000/mo coach +$1000/yr equipment',
+    'lbl-vex-monthly':'Monthly Fee/Person ($)','lbl-vex-cap':'Member Cap','lbl-vex-add':'New/Month',
+    'lbl-vex-coach-base':'Base Coach Fee/Mo','lbl-vex-coach-per4':'+Coach per 4/Mo','lbl-vex-equip-per4':'+Equipment per 4/Yr',
+    'ai-title':'🧠 AI Competition Team','ai-note':'Per 3 students +$1000/mo coach +$2000/yr equipment; max 18',
+    'lbl-ai-monthly':'Monthly Fee/Person ($)','lbl-ai-cap':'Member Cap','lbl-ai-add':'New/Month',
+    'lbl-ai-coach-per3':'+Coach per 3/Mo','lbl-ai-equip-per3':'+Equipment per 3/Yr',
+    'camp-title':'⛺ CAMP (Summer/Winter/Thanksgiving Camps)','camp-note':'Revenue = Total Days × Students/Day × Student Rate; Teacher Cost = Total Days × 1 Teacher × Teacher Rate',
+    'lbl-camp-days':'Total Days','lbl-camp-students':'Students/Day',
+    'lbl-camp-daily':'Student Rate/Day ($)','lbl-camp-teacher':'Teacher Rate/Day ($)',
+    'party-title':'🎉 Parties/Events','lbl-party':'Revenue/Event ($)','lbl-party-monthly':'Events/Month',
+    'export-btn':'📥 Export JSON',
+    'annual-title':'📈 Y1 Annual Summary',
+    'lbl-startup-total':'Total Startup Cost (Y0)','lbl-annual-rev':'Y1 Annual Revenue','lbl-annual-cost':'Y1 Total Operating Cost',
+    'lbl-ebitda':'Y1 EBITDA','lbl-net-cf':'Y1 Net Cash Flow (incl. startup)',
+    'lbl-end-members':'Year-End Members','lbl-breakeven':'Breakeven/Month','lbl-payback':'Payback Period',
+    'rev-title':'💵 Revenue Breakdown','teacher-title':'👨‍🏫 Teacher Cost Breakdown','cost-title':'📋 Cost Breakdown (Annual)',
+    'quarter-title':'📊 Group Session Quarterly Instructor Cost','monthly-title':'📅 Monthly Cash Flow',
+    months:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+    quarters:['Q1 (Jan-Mar)','Q2 (Apr-Jun)','Q3 (Jul-Sep)','Q4 (Oct-Dec)'],
+    'rev-group':'Group Sessions','rev-private':'AI Competition','rev-vex':'VEX IQ',
+    'rev-ai':'AI Team','rev-camp':'CAMP','rev-party':'Parties',
+    'cost-manager':'Manager Salary','cost-rent':'Rent','cost-utilities':'Utilities/Garbage/Supplies','cost-royalty':'HQ Royalty Fee (8%)',
+    'cost-group-instr':'Group Instructor','cost-private-cost':'Private Coach',
+    'cost-vex-coach':'VEX Coach','cost-vex-equip':'VEX Equipment (yr)',
+    'cost-ai-coach':'AI Coach','cost-ai-equip':'AI Equipment (yr)',
+    'cost-camp':'CAMP Teacher Cost','payback-yr':'yrs','payback-over':'>5yrs','/mo':'/mo',
+    'total':'Total','avg-members':'Avg Members','instr-cost-lbl':'Instructor',
+  }
+};
+
+let lang = 'zh';
+function setLang(l) {
+  lang = l;
+  document.getElementById('btn-zh').classList.toggle('active', l==='zh');
+  document.getElementById('btn-en').classList.toggle('active', l==='en');
+  // Only update non-input elements (labels, divs, etc)
+  Object.keys(T[l]).forEach(k => { 
+    const el = document.getElementById(k); 
+    if(el && el.tagName !== 'INPUT') el.textContent = T[l][k]; 
+  });
+  calculate();
+}
+
+const $ = id => parseFloat(document.getElementById(id).value) || 0;
+const fmt = v => '$' + Math.round(v).toLocaleString();
+const fmtK = v => (v >= 0 ? '+' : '') + '$' + (v/1000).toFixed(1) + 'k';
+
+function calculate() {
+  const t = T[lang];
+  const startup = $('franchise') + $('deposit') + $('equipment') + $('furniture') + $('signage') + $('improvement') + $('rent_deposit') + $('insurance') + $('license') + $('cpa') + $('legal') + $('training');
+
+  // per-month simulation
+  let groupCum = 0, privCum = 0, vexCum = 0, aiCum = 0;
+  const groupCap = $('group_cap'), privCap = $('private_cap'), vexCap = $('vex_cap'), aiCap = $('ai_cap');
+  const groupMonthly = $('group_monthly'), privMonthly = $('private_monthly');
+  const privCostPer4 = $('private_cost'); // 每4人$320
+  const vexMonthly = $('vex_monthly'), aiMonthly = $('ai_monthly');
+  const vexCoachBase = $('vex_coach_base'), vexCoachPer4 = $('vex_coach_per4'), vexEquipPer4 = $('vex_equip_per4');
+  const aiCoachPer3 = $('ai_coach_per3'), aiEquipPer3 = $('ai_equip_per3');
+  const campDaily = $('camp_daily'), campTeacher = $('camp_teacher');
+  const campDays = $('camp_days'), campStudents = $('camp_students');
+  // Total camp revenue and teacher cost (spread across July=60%, Aug=40% for monthly display)
+  const campTotalRev = campDays * campStudents * campDaily;
+  const campTotalCost = campDays * Math.ceil(campStudents / 5) * campTeacher;
+  const partyRev = $('party') * $('party_monthly');
+  const managerSalary = $('manager_salary'), rentMonthly = $('rent_monthly');
+  const utilities = $('utilities'), garbage = $('garbage'), supplies = $('supplies');
+  const monthlyFixed = utilities + garbage + supplies; // $500/month
+
+  // annual accumulators
+  let totGroupRev=0,totPrivRev=0,totVexRev=0,totAiRev=0,totCampRev=0,totPartyRev=0;
+  let totFixedCost=0;
+  let totManagerCost=0,totRentCost=0,totGroupInstr=0,totPrivCost=0;
+  let totVexCoach=0,totVexEquip=0,totAiCoach=0,totAiEquip=0,totCampCost=0,totRoyalty=0;
+
+  const mRev=[], mCost=[], mCF=[];
+  // for quarterly group instr
+  const qGroupMembers=[0,0,0,0], qGroupInstr=[0,0,0,0];
+
+  // VEX & AI equipment: accrued at year-end based on final count
+  const vexEquipYr = () => Math.floor(vexCum / 4) * vexEquipPer4;
+  const aiEquipYr = () => Math.floor(aiCum / 3) * aiEquipPer3;
+
+  for (let i = 0; i < 12; i++) {
+    // Group growth by phase
+    const gAdd = i < 3 ? $('group_add1') : i < 6 ? $('group_add2') : $('group_add3');
+    const gChurn = i < 3 ? $('group_churn1') : i < 6 ? $('group_churn2') : $('group_churn3');
+    groupCum = Math.min(Math.max(0, groupCum + gAdd - gChurn), groupCap);
+
+    // Private (cap)
+    privCum = Math.min(privCum + $('private_add'), privCap);
+
+    // VEX (cap 20) - starts from June (month 5)
+    if (i >= 5) vexCum = Math.min(vexCum + $('vex_add'), vexCap);
+
+    // AI (cap 18) - starts from June (month 5)
+    if (i >= 5) aiCum = Math.min(aiCum + $('ai_add'), aiCap);
+
+    // Revenue
+    // Camp: specific days per month (Feb:5, Mar:5, Jun:15, Jul:20, Aug:20, Nov:4, Dec:15 = 84 total)
+    // Group session: not during camp months (Feb, Mar, Jun, Jul, Aug, Nov, Dec)
+    const campDaysByMonth = [0,5,5,0,0,15,20,20,0,0,4,15]; // index = month (0=Jan, 11=Dec)
+    const campDaysThisMonth = campDaysByMonth[i];
+    const campRevM = campDaysThisMonth * campStudents * campDaily;
+    const campCostM = campDaysThisMonth * Math.ceil(campStudents / 5) * campTeacher;
+    const isCampMonth = campDaysThisMonth > 0;
+    const groupRevM = isCampMonth ? 0 : groupCum * groupMonthly;
+    const privRevM = privCum * privMonthly;
+    const vexRevM = vexCum * vexMonthly;
+    const aiRevM = aiCum * aiMonthly;
+    const rev = groupRevM + privRevM + vexRevM + aiRevM + campRevM + partyRev;
+    mRev.push(rev);
+    totGroupRev += groupRevM; totPrivRev += privRevM;
+    totVexRev += vexRevM; totAiRev += aiRevM;
+    totCampRev += campRevM; totPartyRev += partyRev;
+
+    // Costs
+    const groupInstrM = isCampMonth ? 0 : Math.floor(groupCum / 3) * $('group_instr_per3');
+    const privCostM = Math.floor(privCum / 4) * privCostPer4;
+    const vexCoachM = vexCoachBase + Math.floor(vexCum / 4) * vexCoachPer4;
+    const aiCoachM = Math.floor(aiCum / 3) * aiCoachPer3;
+    // campCostM already computed above
+
+    const cost = managerSalary + rentMonthly + monthlyFixed + groupInstrM + privCostM + vexCoachM + aiCoachM + campCostM + rev * 0.08;
+    mCost.push(cost);
+    mCF.push(rev - cost);
+
+    totManagerCost += managerSalary; totRentCost += rentMonthly; totFixedCost += monthlyFixed;
+    totGroupInstr += groupInstrM; totPrivCost += privCostM;
+    totVexCoach += vexCoachM; totAiCoach += aiCoachM; totCampCost += campCostM;
+    totRoyalty += rev * 0.08;
+
+    // Quarterly group teacher cost
+    const q = Math.floor(i / 3);
+    qGroupMembers[q] += groupCum;
+    qGroupInstr[q] += groupInstrM;
+  }
+
+  // Equipment: annual, based on final counts
+  totVexEquip = Math.floor(vexCum / 4) * vexEquipPer4;
+  totAiEquip = Math.floor(aiCum / 3) * aiEquipPer3;
+  // Camp totals come from direct calc (already accumulated in loop)
+  // Override with exact totals
+  totCampRev = campTotalRev;
+  totCampCost = campTotalCost;
+
+  const totalRev = mRev.reduce((a,b) => a+b, 0);
+  const totalCost = mCost.reduce((a,b) => a+b, 0) + totVexEquip + totAiEquip;
+  const ebitda = totalRev - totalCost;
+  const netCF = ebitda - startup;
+  const margin = totalRev > 0 ? (ebitda/totalRev*100).toFixed(1) : 0;
+  const endMembers = groupCum + privCum + vexCum + aiCum;
+
+  // Breakeven (monthly, fixed / contribution margin)
+  const fixedPerMonth = managerSalary + rentMonthly + monthlyFixed + vexCoachBase;
+  const varRate = totalRev > 0 ? (totGroupInstr + totPrivCost + totAiCoach + totVexCoach - vexCoachBase*12 + totCampCost) / totalRev : 0.4;
+  const breakevenMo = fixedPerMonth / Math.max(1 - Math.min(varRate, 0.95), 0.05);
+
+  // Payback (months)
+  let cumCF = -startup, pbMonth = null;
+  if (ebitda > 0) {
+    const moNet = ebitda / 12;
+    for (let m = 0; m < 120; m++) { cumCF += moNet; if (cumCF >= 0 && !pbMonth) pbMonth = m + 1; }
+  }
+  const payback = pbMonth ? (pbMonth/12).toFixed(1) + ' ' + t['payback-yr'] : t['payback-over'];
+
+  // ---------- Update DOM ----------
+  document.getElementById('startup_total').textContent = fmt(startup);
+  document.getElementById('startup_detail').textContent = `${t['lbl-franchise']}: ${fmt($('franchise'))} | ${t['lbl-equipment']}: ${fmt($('equipment'))}`;
+  document.getElementById('annual_rev').textContent = fmt(totalRev);
+  document.getElementById('annual_rev_sub').textContent = (lang==='zh'?'月均 ':'Mo Avg ') + fmt(totalRev/12);
+  document.getElementById('annual_cost').textContent = fmt(totalCost);
+  document.getElementById('ebitda').textContent = fmt(ebitda);
+  document.getElementById('ebitda_margin').textContent = (lang==='zh'?'利润率: ':'Margin: ') + margin + '%';
+  document.getElementById('net_cf').textContent = fmt(netCF);
+  document.getElementById('net_cf_sub').textContent = netCF >= 0 ? '✅ ' + (lang==='zh'?'已回本':'Profitable') : (lang==='zh'?'尚未回本，差 ':'Not yet recovered, gap ') + fmt(-netCF);
+  document.getElementById('end_members').textContent = Math.round(endMembers);
+  document.getElementById('breakeven').textContent = fmt(breakevenMo) + t['/mo'];
+  document.getElementById('payback').textContent = payback;
+
+  // ====== 更新各项目收益汇总 ======
+  // 小组课收益
+  const groupCost = totGroupInstr;
+  const groupProfit = totGroupRev - groupCost;
+  document.getElementById('group-summary-rev').textContent = fmt(totGroupRev);
+  document.getElementById('group-summary-cost').textContent = fmt(groupCost);
+  document.getElementById('group-summary-profit').textContent = fmt(groupProfit);
+  document.getElementById('group-summary-profit').className = 'proj-val proj-profit ' + (groupProfit >= 0 ? 'positive' : 'negative');
+
+  // AI竞赛班收益
+  const privateCost = totPrivCost;
+  const privateProfit = totPrivRev - privateCost;
+  document.getElementById('private-summary-rev').textContent = fmt(totPrivRev);
+  document.getElementById('private-summary-cost').textContent = fmt(privateCost);
+  document.getElementById('private-summary-profit').textContent = fmt(privateProfit);
+  document.getElementById('private-summary-profit').className = 'proj-val proj-profit ' + (privateProfit >= 0 ? 'positive' : 'negative');
+
+  // VEX IQ收益
+  const vexCost = totVexCoach + totVexEquip;
+  const vexProfit = totVexRev - vexCost;
+  document.getElementById('vex-summary-rev').textContent = fmt(totVexRev);
+  document.getElementById('vex-summary-cost').textContent = fmt(vexCost);
+  document.getElementById('vex-summary-profit').textContent = fmt(vexProfit);
+  document.getElementById('vex-summary-profit').className = 'proj-val proj-profit ' + (vexProfit >= 0 ? 'positive' : 'negative');
+
+  // AI竞赛队收益
+  const aiCost = totAiCoach + totAiEquip;
+  const aiProfit = totAiRev - aiCost;
+  document.getElementById('ai-summary-rev').textContent = fmt(totAiRev);
+  document.getElementById('ai-summary-cost').textContent = fmt(aiCost);
+  document.getElementById('ai-summary-profit').textContent = fmt(aiProfit);
+  document.getElementById('ai-summary-profit').className = 'proj-val proj-profit ' + (aiProfit >= 0 ? 'positive' : 'negative');
+
+  // CAMP收益
+  const campCost = totCampCost;
+  const campProfit = totCampRev - campCost;
+  document.getElementById('camp-summary-rev').textContent = fmt(totCampRev);
+  document.getElementById('camp-summary-cost').textContent = fmt(campCost);
+  document.getElementById('camp-summary-profit').textContent = fmt(campProfit);
+  document.getElementById('camp-summary-profit').className = 'proj-val proj-profit ' + (campProfit >= 0 ? 'positive' : 'negative');
+
+  // 派对收益（无直接成本）
+  const partyCost = 0;
+  const partyProfit = totPartyRev;
+  document.getElementById('party-summary-rev').textContent = fmt(totPartyRev);
+  document.getElementById('party-summary-cost').textContent = '$0';
+  document.getElementById('party-summary-profit').textContent = fmt(partyProfit);
+  document.getElementById('party-summary-profit').className = 'proj-val proj-profit positive';
+
+  // Revenue table
+  const revRows = [
+    [t['rev-group'], fmt(totGroupRev), ((totGroupRev/totalRev)*100||0).toFixed(1)+'%'],
+    [t['rev-private'], fmt(totPrivRev), ((totPrivRev/totalRev)*100||0).toFixed(1)+'%'],
+    [t['rev-vex'], fmt(totVexRev), ((totVexRev/totalRev)*100||0).toFixed(1)+'%'],
+    [t['rev-ai'], fmt(totAiRev), ((totAiRev/totalRev)*100||0).toFixed(1)+'%'],
+    [t['rev-camp'], fmt(totCampRev), ((totCampRev/totalRev)*100||0).toFixed(1)+'%'],
+    [t['rev-party'], fmt(totPartyRev), ((totPartyRev/totalRev)*100||0).toFixed(1)+'%'],
+  ];
+  document.getElementById('rev-table').innerHTML = `
+    <tr><th>${lang==='zh'?'收入来源':'Source'}</th><th>${lang==='zh'?'年度':'Annual'}</th><th>%</th></tr>
+    ${revRows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join('')}
+    <tr class="total-row"><td>${t['total']}</td><td>${fmt(totalRev)}</td><td>100%</td></tr>
+  `;
+
+  // Teacher cost breakdown table
+  const groupInstrRule = lang==='zh'?'每3人+$200/月':'+$200/mo per 3 students';
+  const privInstrRule = lang==='zh'?'每4人+$320/月，上限16人':'+$320/mo per 4, max 16';
+  const vexCoachRule = lang==='zh'?'初期$1,000/月 + 每4人+$1,000 + $1,000/年设备':'Base $1,000/mo + $1,000/mo per 4 + $1,000/yr equip';
+  const aiCoachRule = lang==='zh'?'每3人+$1,000/月 + $2,000/年设备':'+$1,000/mo per 3 + $2,000/yr equip';
+  const campRule = lang==='zh'?'$150/天×1名老师（固定）':'$150/day × 1 teacher (fixed)';
+  
+  document.getElementById('teacher-table').innerHTML = `
+    <tr><th>${lang==='zh'?'教师费用项目':'Teacher Cost Item'}</th><th>${lang==='zh'?'计算规则':'Calculation Rule'}</th><th>${lang==='zh'?'年度':'Annual'}</th></tr>
+    <tr><td>${lang==='zh'?'小组课教师':'Group Class Teacher'}</td><td>${groupInstrRule}<br><small>${lang==='zh'?`Q1:${fmt(qGroupInstr[0])} / Q2:${fmt(qGroupInstr[1])} / Q3:${fmt(qGroupInstr[2])} / Q4:${fmt(qGroupInstr[3])}`:`Q1:${fmt(qGroupInstr[0])} / Q2:${fmt(qGroupInstr[1])} / Q3:${fmt(qGroupInstr[2])} / Q4:${fmt(qGroupInstr[3])}`}</small></td><td>${fmt(totGroupInstr)}</td></tr>
+    <tr><td>${lang==='zh'?'AI竞赛班教师':'AI Competition Teacher'}</td><td>${privInstrRule}</td><td>${fmt(totPrivCost)}</td></tr>
+    <tr><td>${lang==='zh'?'VEX IQ 教练':'VEX IQ Coach'}</td><td>${vexCoachRule}</td><td>${fmt(totVexCoach + vexEquipYr())}</td></tr>
+    <tr><td>${lang==='zh'?'AI 赛队教练':'AI Team Coach'}</td><td>${aiCoachRule}</td><td>${fmt(totAiCoach + aiEquipYr())}</td></tr>
+    <tr><td>${lang==='zh'?'夏令营老师':'Summer Camp Teacher'}</td><td>${campRule}</td><td>${fmt(totCampCost)}</td></tr>
+    <tr class="total-row"><td>${lang==='zh'?'教师费用合计':'Teacher Cost Total'}</td><td></td><td>${fmt(totGroupInstr+totPrivCost+totVexCoach+vexEquipYr()+totAiCoach+aiEquipYr()+totCampCost)}</td></tr>
+  `;
+
+  // Cost table
+  const costRows = [
+    [t['cost-manager'], fmt(totManagerCost)],
+    [t['cost-rent'], fmt(totRentCost)],
+    [t['cost-utilities'], fmt(totFixedCost)],
+    [t['cost-group-instr'], fmt(totGroupInstr)],
+    [t['cost-private-cost'], fmt(totPrivCost)],
+    [t['cost-vex-coach'], fmt(totVexCoach)],
+    [t['cost-vex-equip'], fmt(totVexEquip)],
+    [t['cost-ai-coach'], fmt(totAiCoach)],
+    [t['cost-ai-equip'], fmt(totAiEquip)],
+    [t['cost-camp'], fmt(totCampCost)],
+    [t['cost-royalty'], fmt(totRoyalty)],
+  ];
+  document.getElementById('cost-table').innerHTML = `
+    <tr><th>${lang==='zh'?'成本项目':'Cost Item'}</th><th>${lang==='zh'?'年度':'Annual'}</th></tr>
+    ${costRows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join('')}
+    <tr class="total-row"><td>${t['total']}</td><td>${fmt(totalCost)}</td></tr>
+  `;
+
+  // Quarterly group instructor
+  const qLabels = t['quarters'];
+  document.getElementById('quarter_grid').innerHTML = [0,1,2,3].map(q => `
+    <div class="q-item">
+      <div class="q-label">${qLabels[q]}</div>
+      <div class="q-rev">${fmt(qGroupInstr[q])} <small>${t['instr-cost-lbl']}</small></div>
+      <div class="q-cost">${t['avg-members']}: ${Math.round(qGroupMembers[q]/3)}人</div>
+    </div>
+  `).join('');
+
+  // Monthly grid
+  const months = t['months'];
+  document.getElementById('month_grid').innerHTML = months.map((m, i) => {
+    const cf = mCF[i];
+    const campDays = [0,5,5,0,0,15,20,20,0,0,4,15][i];
+    const isTeamMonth = i >= 5;
+    const note = (campDays > 0 ? `<div style="font-size:9px;color:#9b59b6;">🏕️${campDays}天</div>` : '') + 
+                 (isTeamMonth && vexCum > 0 ? `<div style="font-size:9px;color:#3498db;">🤖赛队</div>` : '');
+    return `<div class="month-item ${cf>=0?'positive':'negative'}">
+      <div class="m-name">${m}</div>
+      <div class="m-rev">${fmt(mRev[i])}</div>
+      <div class="m-cost">-${fmt(mCost[i])}</div>
+      <div class="m-cf">${fmtK(cf)}</div>
+      ${note}
+    </div>`;
+  }).join('');
+
+  // Year 2 calculation (+50% students)
+  let y2GroupCum = 0, y2PrivCum = 0, y2VexCum = 0, y2AiCum = 0;
+  const m2Rev = [], m2Cost = [], m2CF = [];
+  for (let i = 0; i < 12; i++) {
+    const gAdd = Math.round((i < 3 ? $('group_add1') : i < 6 ? $('group_add2') : $('group_add3')) * 1.5);
+    const gChurn = Math.round((i < 3 ? $('group_churn1') : i < 6 ? $('group_churn2') : $('group_churn3')) * 1.5);
+    y2GroupCum = Math.min(Math.max(0, y2GroupCum + gAdd - gChurn), Math.round($('group_cap') * 1.5));
+    y2PrivCum = Math.min(y2PrivCum + Math.round($('private_add') * 1.5), Math.round($('private_cap') * 1.5));
+    y2VexCum = Math.min(y2VexCum + Math.round($('vex_add') * 1.5), Math.round($('vex_cap') * 1.5));
+    y2AiCum = Math.min(y2AiCum + Math.round($('ai_add') * 1.5), Math.round($('ai_cap') * 1.5));
+    
+    const campDaysThisMonth = [0,5,5,0,0,15,20,20,0,0,4,15][i];
+    const campStudentsY2 = Math.round($('camp_students') * 1.5);
+    const campRevM = campDaysThisMonth * campStudentsY2 * campDaily;
+    const campCostM = campDaysThisMonth * Math.ceil(campStudentsY2 / 5) * campTeacher;
+    const isCampMonth = campDaysThisMonth > 0;
+    const rev = (!isCampMonth ? y2GroupCum * groupMonthly : 0) + y2PrivCum * privMonthly + y2VexCum * vexMonthly + y2AiCum * aiMonthly + campRevM + $('party') * $('party_monthly');
+    const cost = managerSalary + rentMonthly + monthlyFixed + (isCampMonth ? 0 : Math.floor(y2GroupCum / 3) * $('group_instr_per3')) + Math.floor(y2PrivCum / 4) * privCostPer4 + (vexCoachBase + Math.floor(y2VexCum / 4) * vexCoachPer4) + Math.floor(y2AiCum / 3) * aiCoachPer3 + campCostM + rev * 0.08;
+    m2Rev.push(rev); m2Cost.push(cost); m2CF.push(rev - cost);
+  }
+  
+  const y2TotalRev = m2Rev.reduce((a,b)=>a+b,0);
+  const y2TotalCost = m2Cost.reduce((a,b)=>a+b,0) + Math.floor(y2VexCum / 4) * vexEquipPer4 + Math.floor(y2AiCum / 3) * aiEquipPer3;
+  const y2Ebitda = y2TotalRev - y2TotalCost;
+  const margin1 = totalRev > 0 ? (ebitda / totalRev * 100).toFixed(1) + '%' : '-';
+  const margin2 = y2TotalRev > 0 ? (y2Ebitda / y2TotalRev * 100).toFixed(1) + '%' : '-';
+  
+  // Payback calculation
+  cumCF = -startup; // reuse existing cumCF variable
+  let paybackMo = null;
+  const allCF = [...mCF, ...m2CF];
+  for (let i = 0; i < 24; i++) {
+    cumCF += allCF[i];
+    if (cumCF >= 0 && !paybackMo) paybackMo = i + 1;
+  }
+  
+  // Update Y2 grid
+  document.getElementById('month_grid2').innerHTML = months.map((m, i) => {
+    const cf = m2CF[i];
+    const campDays = [0,5,5,0,0,15,20,20,0,0,4,15][i];
+    const isTeamMonth = i >= 5;
+    const note = (campDays > 0 ? `<div style="font-size:9px;color:#9b59b6;">🏕️${campDays}天</div>` : '') + 
+                 (isTeamMonth && y2VexCum > 0 ? `<div style="font-size:9px;color:#3498db;">🤖赛队</div>` : '');
+    return `<div class="month-item ${cf>=0?'positive':'negative'}">
+      <div class="m-name">${m}</div>
+      <div class="m-rev">${fmt(m2Rev[i])}</div>
+      <div class="m-cost">-${fmt(m2Cost[i])}</div>
+      <div class="m-cf">${fmtK(cf)}</div>
+      ${note}
+    </div>`;
+  }).join('');
+  
+  // Update investment recovery
+  const total24CF = allCF.reduce((a,b)=>a+b,0) - startup;
+  document.getElementById('payback_month').textContent = paybackMo ? `${paybackMo} ${lang==='zh'?'月':'mo'}` : '>24mo';
+  document.getElementById('cum_cf_24').textContent = fmt(total24CF + startup);
+  document.getElementById('margin_y1').textContent = margin1;
+  document.getElementById('margin_y2').textContent = margin2;
+  
+  // Recovery bar
+  const recoveryPct = Math.min(100, Math.max(0, ((startup + cumCF) / startup * 100)));
+  document.getElementById('recovery_bar').innerHTML = `
+    <div style="margin-top:12px;">
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">
+        <span>${lang==='zh'?'累计投资回收进度':'Investment Recovery Progress'}</span>
+        <span>${paybackMo ? (startup + cumCF >= 0 ? '✅ ' + (lang==='zh'?'已回本':'Recovered') : (paybackMo + ' ' + (lang==='zh'?'月后回本':'mo to recover'))) : (lang==='zh'?'24月内未回本':'Not recovered in 24mo')}</span>
+      </div>
+      <div style="background:#e0e0e0;border-radius:8px;height:20px;overflow:hidden;">
+        <div style="background:${startup + cumCF >= 0 ? '#27ae60' : '#3498db'};height:100%;width:${recoveryPct}%;transition:width 0.5s;"></div>
+      </div>
+    </div>
+  `;
+}
+
+function exportData() {
+  // Use html2canvas to capture the whole page as image
+  const btn = document.getElementById('export-btn');
+  const originalText = btn.textContent;
+  btn.textContent = lang==='zh'?'生成中...':'Generating...';
+  
+  // Hide the button temporarily
+  btn.style.display = 'none';
+  
+  html2canvas(document.body, {
+    scale: 2,
+    useCORS: true,
+    allowTaint: true,
+    backgroundColor: '#f5f7fa'
+  }).then(canvas => {
+    btn.style.display = '';
+    btn.textContent = originalText;
+    
+    // Download as PNG
+    const link = document.createElement('a');
+    link.download = 'Magikid_Lab_Financial_Model.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  });
+}
+
+function exportPDF() {
+  const btn = document.querySelector('.export-btn');
+  const originalText = btn.textContent;
+  btn.textContent = lang==='zh'?'生成中...':'Generating...';
+  btn.style.display = 'none';
+  
+  html2canvas(document.body, {
+    scale: 2,
+    useCORS: true,
+    backgroundColor: '#f5f7fa'
+  }).then(canvas => {
+    btn.style.display = '';
+    btn.textContent = originalText;
+    
+    const link = document.createElement('a');
+    link.download = 'Magikid_Lab_Financial_Model.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  }).catch(err => {
+    btn.style.display = '';
+    btn.textContent = originalText;
+    alert('Export failed: ' + err);
+  });
+}
+
+document.querySelectorAll('input').forEach(i => i.addEventListener('input', calculate));
+calculate();
+</script>
+</body>
+</html>
