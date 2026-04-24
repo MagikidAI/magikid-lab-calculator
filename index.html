@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="https://media.magikidlab.com/new/favicon.ico" />
   <title>MAGIKID LAB运营模拟计算器</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -11,13 +12,23 @@
     header { text-align: center; padding: 20px 0; background: white; border-radius: 14px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
     header h1 { color: #2E86AB; font-size: 26px; margin-bottom: 6px; }
     header p { color: #666; font-size: 13px; }
-    .header-row { display: flex; justify-content: space-between; align-items: center; padding: 0 24px; }
+    .header-copy { min-width: 0; }
+    .header-row { display: flex; justify-content: space-between; align-items: center; padding: 0 24px; gap: 16px; }
+    .header-actions { display: flex; align-items: center; justify-content: flex-end; gap: 10px; flex-wrap: wrap; }
+    .quick-actions { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
     .lang-toggle { display: flex; gap: 6px; }
     .lang-btn { background: white; border: 2px solid #ddd; color: #666; padding: 6px 14px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.2s; }
     .lang-btn:hover { border-color: #2E86AB; color: #2E86AB; }
     .lang-btn.active { background: #2E86AB; border-color: #2E86AB; color: white; }
+    .quick-btn { background: #f5f9fc; border: 1px solid #cfe0ea; color: #2E86AB; padding: 6px 10px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 700; transition: all 0.2s; white-space: nowrap; }
+    .quick-btn:hover { background: #2E86AB; border-color: #2E86AB; color: white; }
     .main-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
     @media (max-width: 1024px) { .main-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 900px) {
+      .header-row { flex-direction: column; align-items: stretch; }
+      .header-actions { justify-content: space-between; }
+      .quick-actions { justify-content: flex-start; }
+    }
     .card { background: white; border-radius: 14px; padding: 20px; box-shadow: 0 6px 24px rgba(0,0,0,0.2); margin-bottom: 18px; }
     .card-title { font-size: 16px; font-weight: 700; color: #2E86AB; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
     .card-title::before { content: ''; width: 4px; height: 18px; background: #2E86AB; border-radius: 2px; }
@@ -96,8 +107,6 @@
     
     /* Year 2 Comparison */
     .section-header { text-align: center; margin: 24px 0; }
-    .lang-toggle { background: #3498db; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 16px; cursor: pointer; }
-    .lang-toggle:hover { background: #2980b9; }
     .y2-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 20px; }
     .y2-item { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 12px; text-align: center; }
     .y2-item:nth-child(3) { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); }
@@ -116,6 +125,348 @@
     .proj-profit.positive { color: #27ae60; }
     .proj-profit.negative { color: #e74c3c; }
     .proj-summary-header { font-size: 11px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+    .bottom-actions { margin-top: 8px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+    .bottom-actions .export-btn { margin-top: 0; }
+
+    @media (max-width: 768px) {
+      body {
+        background:
+          radial-gradient(circle at top, rgba(46,134,171,0.12), transparent 28%),
+          linear-gradient(180deg, #f5f8fc 0%, #edf3f9 100%);
+      }
+
+      .container {
+        padding: 12px;
+      }
+
+      header {
+        padding: 14px;
+        margin-bottom: 16px;
+        border-radius: 20px;
+        border: 1px solid rgba(46,134,171,0.12);
+        box-shadow: 0 18px 48px rgba(16, 48, 74, 0.12);
+        background: linear-gradient(180deg, #ffffff 0%, #f7fbff 100%);
+      }
+
+      .header-row {
+        padding: 0;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+      }
+
+      .header-copy {
+        text-align: center;
+      }
+
+      header h1 {
+        font-size: 20px;
+        line-height: 1.15;
+        letter-spacing: -0.03em;
+        margin-bottom: 6px;
+      }
+
+      header p {
+        font-size: 13px;
+        line-height: 1.4;
+        max-width: 24em;
+        margin: 0 auto;
+      }
+
+      .header-actions {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+      }
+
+      .quick-actions {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 6px;
+        width: 100%;
+      }
+
+      .quick-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 34px;
+        padding: 6px 4px;
+        font-size: 10px;
+        line-height: 1;
+        border-radius: 10px;
+        box-shadow: 0 6px 16px rgba(46,134,171,0.10);
+      }
+
+      .lang-toggle {
+        justify-content: center;
+      }
+
+      .lang-btn {
+        min-width: 0;
+        padding: 7px 10px;
+        border-radius: 10px;
+        font-size: 11px;
+        box-shadow: 0 6px 16px rgba(26,82,118,0.08);
+      }
+
+      .main-grid {
+        gap: 16px;
+      }
+
+      .card {
+        padding: 16px;
+        margin-bottom: 14px;
+        border-radius: 18px;
+        box-shadow: 0 14px 36px rgba(15, 44, 67, 0.10);
+      }
+
+      .card-title {
+        font-size: 17px;
+        line-height: 1.3;
+        margin-bottom: 14px;
+      }
+
+      .card-title::before {
+        height: 20px;
+      }
+
+      .section-note {
+        margin: 0 0 12px 0;
+        padding: 8px 10px;
+        font-size: 12px;
+        line-height: 1.5;
+        border-radius: 10px;
+      }
+
+      .input-row,
+      .input-row-3 {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+
+      .input-group label {
+        font-size: 13px;
+        line-height: 1.35;
+        margin-bottom: 6px;
+      }
+
+      .input-group input {
+        min-height: 46px;
+        font-size: 16px;
+        border-radius: 10px;
+      }
+
+      .block-label {
+        display: block;
+        width: 100%;
+        text-align: center;
+        padding: 7px 12px;
+        font-size: 12px;
+        margin-bottom: 0;
+      }
+
+      .result-card {
+        padding: 18px;
+        border-radius: 14px;
+      }
+
+      .result-value {
+        font-size: 22px;
+        line-height: 1.1;
+      }
+
+      .result-sub {
+        font-size: 12px;
+        line-height: 1.45;
+      }
+
+      .kpi-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .kpi-item {
+        padding: 14px 10px;
+        border-radius: 12px;
+      }
+
+      .bd-table {
+        width: 100%;
+        font-size: 11px;
+      }
+
+      .bd-table.responsive-mobile thead {
+        display: none;
+      }
+
+      .bd-table.responsive-mobile,
+      .bd-table.responsive-mobile tbody,
+      .bd-table.responsive-mobile tr,
+      .bd-table.responsive-mobile td {
+        display: block;
+        width: 100%;
+      }
+
+      .bd-table.responsive-mobile tbody {
+        margin-top: 8px;
+      }
+
+      .bd-table.responsive-mobile tr {
+        margin-bottom: 10px;
+        padding: 10px 12px;
+        border: 1px solid #e3edf5;
+        border-radius: 14px;
+        background: linear-gradient(180deg, #ffffff 0%, #f9fcff 100%);
+        box-shadow: 0 8px 20px rgba(25, 69, 104, 0.06);
+      }
+
+      .bd-table.responsive-mobile td {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 6px 0;
+        border-bottom: 1px dashed #e6eef4;
+        white-space: normal;
+        text-align: right;
+      }
+
+      .bd-table.responsive-mobile td:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+      }
+
+      .bd-table.responsive-mobile td::before {
+        content: attr(data-label);
+        flex: 0 0 42%;
+        text-align: left;
+        color: #6f7f8d;
+        font-weight: 700;
+      }
+
+      .bd-table.responsive-mobile .total-row {
+        border-color: #b9d9e6;
+        background: linear-gradient(180deg, #eef7fc 0%, #e5f2f9 100%);
+      }
+
+      .quarter-grid,
+      .month-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .q-item,
+      .month-item {
+        border-radius: 12px;
+      }
+
+      .proj-summary {
+        margin-top: 16px;
+        padding-top: 14px;
+      }
+
+      .proj-summary-row {
+        font-size: 13px;
+        gap: 12px;
+      }
+
+      .bottom-actions {
+        margin-top: 10px;
+        grid-template-columns: 1fr;
+      }
+
+      .export-btn {
+        min-height: 50px;
+        border-radius: 14px;
+        font-size: 15px;
+        box-shadow: 0 10px 24px rgba(26,82,118,0.16);
+      }
+    }
+
+    @media (max-width: 480px) {
+      header {
+        padding: 12px 10px;
+        margin-bottom: 12px;
+        border-radius: 16px;
+      }
+
+      .header-row {
+        gap: 8px;
+      }
+
+      header h1 {
+        font-size: 18px;
+        margin-bottom: 4px;
+      }
+
+      header p {
+        font-size: 12px;
+        line-height: 1.25;
+      }
+
+      .header-actions {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 4px;
+        align-items: stretch;
+      }
+
+      .quick-actions {
+        display: contents;
+      }
+
+      .quick-btn {
+        min-height: 28px;
+        padding: 3px 1px;
+        font-size: 9px;
+        border-radius: 8px;
+        box-shadow: none;
+      }
+
+      .kpi-grid,
+      .quarter-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .month-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .month-item {
+        padding: 8px 6px;
+        border-radius: 10px;
+        font-size: 11px;
+      }
+
+      .month-item .m-name {
+        font-size: 11px;
+      }
+
+      .month-item .m-rev,
+      .month-item .m-cost,
+      .month-item .m-cf {
+        font-size: 10px;
+      }
+
+      .lang-toggle {
+        display: contents;
+      }
+
+      .lang-btn {
+        min-width: 0;
+        min-height: 28px;
+        padding: 3px 1px;
+        font-size: 10px;
+        border-radius: 8px;
+        box-shadow: none;
+      }
+
+      .card {
+        padding: 14px;
+        border-radius: 16px;
+      }
+    }
   </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
@@ -123,13 +474,20 @@
 <div class="container">
   <header>
     <div class="header-row">
-      <div>
+      <div class="header-copy">
         <h1 id="title">🏫 MAGIKID LAB运营模拟计算器</h1>
         <p id="subtitle">输入参数 → 自动计算投入产出 | 货币: USD</p>
       </div>
-      <div class="lang-toggle">
-        <button class="lang-btn active" id="btn-zh" onclick="setLang('zh')">中文</button>
-        <button class="lang-btn" id="btn-en" onclick="setLang('en')">English</button>
+      <div class="header-actions">
+        <div class="quick-actions">
+          <button class="quick-btn" id="top-export-image-btn" data-i18n="export-image-btn" onclick="exportPDF()">📥 导出图片</button>
+          <button class="quick-btn" id="top-export-data-btn" data-i18n="export-data-btn" onclick="exportData()">📥 导出 JSON</button>
+          <button class="quick-btn" id="top-import-data-btn" data-i18n="import-data-btn" onclick="triggerImport()">📤 导入 JSON</button>
+        </div>
+        <div class="lang-toggle">
+          <button class="lang-btn active" id="btn-zh" onclick="setLang('zh')">中文</button>
+          <button class="lang-btn" id="btn-en" onclick="setLang('en')">English</button>
+        </div>
       </div>
     </div>
   </header>
@@ -186,8 +544,8 @@
         <div class="section-note" id="group-note">每增3个会员 → +$200/月教师费（按季展示）</div>
         
         <div class="input-row" style="margin-top:12px;">
-          <span class="block-label block-rev">💰 收入</span>
-          <span class="block-label block-cost">📋 成本</span>
+          <span class="block-label block-rev" data-i18n="block-revenue">💰 收入</span>
+          <span class="block-label block-cost" data-i18n="block-cost">📋 成本</span>
         </div>
         <div class="input-row">
           <div class="input-group rev"><label id="lbl-group-monthly">月费/人 ($)</label><input type="number" id="group_monthly" value="200"></div>
@@ -196,7 +554,7 @@
         </div>
         
         <div class="input-row" style="margin-top:14px;">
-          <span class="block-label block-rev">📈 增长</span>
+          <span class="block-label block-rev" data-i18n="block-growth">📈 增长</span>
         </div>
         <div class="input-row-3">
           <div class="input-group"><label id="lbl-group-add1">1-3月 新增/月</label><input type="number" id="group_add1" value="20"></div>
@@ -213,10 +571,10 @@
         
         <!-- 全年收益汇总 -->
         <div class="proj-summary" id="group-summary">
-          <div class="proj-summary-header">📊 全年收益</div>
-          <div class="proj-summary-row"><span class="proj-label">年收入</span><span class="proj-val proj-rev" id="group-summary-rev">$0</span></div>
-          <div class="proj-summary-row"><span class="proj-label">年成本</span><span class="proj-val proj-cost" id="group-summary-cost">$0</span></div>
-          <div class="proj-summary-row"><span class="proj-label">净利润</span><span class="proj-val proj-profit" id="group-summary-profit">$0</span></div>
+          <div class="proj-summary-header" data-i18n="summary-header">📊 全年收益</div>
+          <div class="proj-summary-row"><span class="proj-label" data-i18n="summary-revenue">年收入</span><span class="proj-val proj-rev" id="group-summary-rev">$0</span></div>
+          <div class="proj-summary-row"><span class="proj-label" data-i18n="summary-cost">年成本</span><span class="proj-val proj-cost" id="group-summary-cost">$0</span></div>
+          <div class="proj-summary-row"><span class="proj-label" data-i18n="summary-profit">净利润</span><span class="proj-val proj-profit" id="group-summary-profit">$0</span></div>
         </div>
       </div>
 
@@ -226,8 +584,8 @@
         <div class="section-note" id="private-note">每增4人+$320/月成本；上限16人</div>
         
         <div class="input-row" style="margin-top:12px;">
-          <span class="block-label block-rev">💰 收入</span>
-          <span class="block-label block-cost">📋 成本</span>
+          <span class="block-label block-rev" data-i18n="block-revenue">💰 收入</span>
+          <span class="block-label block-cost" data-i18n="block-cost">📋 成本</span>
         </div>
         <div class="input-row">
           <div class="input-group rev"><label id="lbl-private-monthly">月费/人 ($)</label><input type="number" id="private_monthly" value="800"></div>
@@ -236,7 +594,7 @@
         </div>
         
         <div class="input-row" style="margin-top:14px;">
-          <span class="block-label block-rev">📈 增长</span>
+          <span class="block-label block-rev" data-i18n="block-growth">📈 增长</span>
         </div>
         <div class="input-row">
           <div class="input-group"><label id="lbl-private-add">每月新增</label><input type="number" id="private_add" value="1"></div>
@@ -244,10 +602,10 @@
         
         <!-- 全年收益汇总 -->
         <div class="proj-summary">
-          <div class="proj-summary-header">📊 全年收益</div>
-          <div class="proj-summary-row"><span class="proj-label">年收入</span><span class="proj-val proj-rev" id="private-summary-rev">$0</span></div>
-          <div class="proj-summary-row"><span class="proj-label">年成本</span><span class="proj-val proj-cost" id="private-summary-cost">$0</span></div>
-          <div class="proj-summary-row"><span class="proj-label">净利润</span><span class="proj-val proj-profit" id="private-summary-profit">$0</span></div>
+          <div class="proj-summary-header" data-i18n="summary-header">📊 全年收益</div>
+          <div class="proj-summary-row"><span class="proj-label" data-i18n="summary-revenue">年收入</span><span class="proj-val proj-rev" id="private-summary-rev">$0</span></div>
+          <div class="proj-summary-row"><span class="proj-label" data-i18n="summary-cost">年成本</span><span class="proj-val proj-cost" id="private-summary-cost">$0</span></div>
+          <div class="proj-summary-row"><span class="proj-label" data-i18n="summary-profit">净利润</span><span class="proj-val proj-profit" id="private-summary-profit">$0</span></div>
         </div>
       </div>
 
@@ -257,8 +615,8 @@
         <div class="section-note" id="vex-note">初期教练费$1000/月；每增4人 +$1000/月教练费 +$1000全年设备费</div>
         
         <div class="input-row" style="margin-top:12px;">
-          <span class="block-label block-rev">💰 收入</span>
-          <span class="block-label block-cost">📋 成本</span>
+          <span class="block-label block-rev" data-i18n="block-revenue">💰 收入</span>
+          <span class="block-label block-cost" data-i18n="block-cost">📋 成本</span>
         </div>
         <div class="input-row">
           <div class="input-group rev"><label id="lbl-vex-monthly">月费/人 ($)</label><input type="number" id="vex_monthly" value="799"></div>
@@ -271,7 +629,7 @@
         </div>
         
         <div class="input-row" style="margin-top:14px;">
-          <span class="block-label block-rev">📈 增长</span>
+          <span class="block-label block-rev" data-i18n="block-growth">📈 增长</span>
         </div>
         <div class="input-row">
           <div class="input-group"><label id="lbl-vex-add">每月新增成员</label><input type="number" id="vex_add" value="4"></div>
@@ -279,10 +637,10 @@
         
         <!-- 全年收益汇总 -->
         <div class="proj-summary">
-          <div class="proj-summary-header">📊 全年收益</div>
-          <div class="proj-summary-row"><span class="proj-label">年收入</span><span class="proj-val proj-rev" id="vex-summary-rev">$0</span></div>
-          <div class="proj-summary-row"><span class="proj-label">年成本</span><span class="proj-val proj-cost" id="vex-summary-cost">$0</span></div>
-          <div class="proj-summary-row"><span class="proj-label">净利润</span><span class="proj-val proj-profit" id="vex-summary-profit">$0</span></div>
+          <div class="proj-summary-header" data-i18n="summary-header">📊 全年收益</div>
+          <div class="proj-summary-row"><span class="proj-label" data-i18n="summary-revenue">年收入</span><span class="proj-val proj-rev" id="vex-summary-rev">$0</span></div>
+          <div class="proj-summary-row"><span class="proj-label" data-i18n="summary-cost">年成本</span><span class="proj-val proj-cost" id="vex-summary-cost">$0</span></div>
+          <div class="proj-summary-row"><span class="proj-label" data-i18n="summary-profit">净利润</span><span class="proj-val proj-profit" id="vex-summary-profit">$0</span></div>
         </div>
       </div>
 
@@ -292,8 +650,8 @@
         <div class="section-note" id="ai-note">每增3人 +$1000/月教练费 +$2000全年设备费；上限18人</div>
         
         <div class="input-row" style="margin-top:12px;">
-          <span class="block-label block-rev">💰 收入</span>
-          <span class="block-label block-cost">📋 成本</span>
+          <span class="block-label block-rev" data-i18n="block-revenue">💰 收入</span>
+          <span class="block-label block-cost" data-i18n="block-cost">📋 成本</span>
         </div>
         <div class="input-row">
           <div class="input-group rev"><label id="lbl-ai-monthly">月费/人 ($)</label><input type="number" id="ai_monthly" value="799"></div>
@@ -305,7 +663,7 @@
         </div>
         
         <div class="input-row" style="margin-top:14px;">
-          <span class="block-label block-rev">📈 增长</span>
+          <span class="block-label block-rev" data-i18n="block-growth">📈 增长</span>
         </div>
         <div class="input-row">
           <div class="input-group"><label id="lbl-ai-add">每月新增成员</label><input type="number" id="ai_add" value="3"></div>
@@ -313,10 +671,10 @@
         
         <!-- 全年收益汇总 -->
         <div class="proj-summary">
-          <div class="proj-summary-header">📊 全年收益</div>
-          <div class="proj-summary-row"><span class="proj-label">年收入</span><span class="proj-val proj-rev" id="ai-summary-rev">$0</span></div>
-          <div class="proj-summary-row"><span class="proj-label">年成本</span><span class="proj-val proj-cost" id="ai-summary-cost">$0</span></div>
-          <div class="proj-summary-row"><span class="proj-label">净利润</span><span class="proj-val proj-profit" id="ai-summary-profit">$0</span></div>
+          <div class="proj-summary-header" data-i18n="summary-header">📊 全年收益</div>
+          <div class="proj-summary-row"><span class="proj-label" data-i18n="summary-revenue">年收入</span><span class="proj-val proj-rev" id="ai-summary-rev">$0</span></div>
+          <div class="proj-summary-row"><span class="proj-label" data-i18n="summary-cost">年成本</span><span class="proj-val proj-cost" id="ai-summary-cost">$0</span></div>
+          <div class="proj-summary-row"><span class="proj-label" data-i18n="summary-profit">净利润</span><span class="proj-val proj-profit" id="ai-summary-profit">$0</span></div>
         </div>
       </div>
 
@@ -326,8 +684,8 @@
         <div class="section-note" id="camp-note">CAMP分布: 2月5天/3月5天/6月15天/7月20天/8月20天/11月4天/12月15天 共84天</div>
         
         <div class="input-row" style="margin-top:12px;">
-          <span class="block-label block-rev">💰 收入</span>
-          <span class="block-label block-cost">📋 成本</span>
+          <span class="block-label block-rev" data-i18n="block-revenue">💰 收入</span>
+          <span class="block-label block-cost" data-i18n="block-cost">📋 成本</span>
         </div>
         <div class="input-row">
           <div class="input-group rev"><label id="lbl-camp-days">总天数</label><input type="number" id="camp_days" value="84"></div>
@@ -340,10 +698,10 @@
         
         <!-- 全年收益汇总 -->
         <div class="proj-summary">
-          <div class="proj-summary-header">📊 全年收益</div>
-          <div class="proj-summary-row"><span class="proj-label">年收入</span><span class="proj-val proj-rev" id="camp-summary-rev">$0</span></div>
-          <div class="proj-summary-row"><span class="proj-label">年成本</span><span class="proj-val proj-cost" id="camp-summary-cost">$0</span></div>
-          <div class="proj-summary-row"><span class="proj-label">净利润</span><span class="proj-val proj-profit" id="camp-summary-profit">$0</span></div>
+          <div class="proj-summary-header" data-i18n="summary-header">📊 全年收益</div>
+          <div class="proj-summary-row"><span class="proj-label" data-i18n="summary-revenue">年收入</span><span class="proj-val proj-rev" id="camp-summary-rev">$0</span></div>
+          <div class="proj-summary-row"><span class="proj-label" data-i18n="summary-cost">年成本</span><span class="proj-val proj-cost" id="camp-summary-cost">$0</span></div>
+          <div class="proj-summary-row"><span class="proj-label" data-i18n="summary-profit">净利润</span><span class="proj-val proj-profit" id="camp-summary-profit">$0</span></div>
         </div>
       </div>
 
@@ -352,7 +710,7 @@
         <div class="card-title" id="party-title">🎉 派对/活动</div>
         
         <div class="input-row" style="margin-top:12px;">
-          <span class="block-label block-rev">💰 收入</span>
+          <span class="block-label block-rev" data-i18n="block-revenue">💰 收入</span>
         </div>
         <div class="input-row">
           <div class="input-group rev"><label id="lbl-party">每次收入 ($)</label><input type="number" id="party" value="2000"></div>
@@ -361,15 +719,13 @@
         
         <!-- 全年收益汇总 -->
         <div class="proj-summary">
-          <div class="proj-summary-header">📊 全年收益</div>
-          <div class="proj-summary-row"><span class="proj-label">年收入</span><span class="proj-val proj-rev" id="party-summary-rev">$0</span></div>
-          <div class="proj-summary-row"><span class="proj-label">年成本</span><span class="proj-val proj-cost" id="party-summary-cost">$0</span></div>
-          <div class="proj-summary-row"><span class="proj-label">净利润</span><span class="proj-val proj-profit" id="party-summary-profit">$0</span></div>
+          <div class="proj-summary-header" data-i18n="summary-header">📊 全年收益</div>
+          <div class="proj-summary-row"><span class="proj-label" data-i18n="summary-revenue">年收入</span><span class="proj-val proj-rev" id="party-summary-rev">$0</span></div>
+          <div class="proj-summary-row"><span class="proj-label" data-i18n="summary-cost">年成本</span><span class="proj-val proj-cost" id="party-summary-cost">$0</span></div>
+          <div class="proj-summary-row"><span class="proj-label" data-i18n="summary-profit">净利润</span><span class="proj-val proj-profit" id="party-summary-profit">$0</span></div>
         </div>
       </div>
 
-      <button class="export-btn" onclick="exportPDF()">📥 导出图片</button>
-      <button class="export-btn" onclick="exportData()">📥 导出 JSON</button>
     </div>
 
     <!-- ======== RIGHT: RESULTS ======== -->
@@ -447,41 +803,52 @@
       
       <!-- Year 2 Monthly -->
       <div class="card">
-        <div class="card-title">📈 Year 2 月度预测 (学生 +50%)</div>
+        <div class="card-title" id="y2-title">📈 Year 2 月度预测 (学生 +50%)</div>
         <div class="month-grid" id="month_grid2"></div>
       </div>
       
       <!-- Investment Recovery -->
       <div class="card">
-        <div class="card-title">🎯 投资回报分析</div>
+        <div class="card-title" id="investment-title">🎯 投资回报分析</div>
         <div class="kpi-grid">
-          <div class="kpi-item"><div class="k-label">投资回收月份</div><div class="k-val" id="payback_month">-</div></div>
-          <div class="kpi-item"><div class="k-label">24月累计现金流</div><div class="k-val" id="cum_cf_24">-</div></div>
-          <div class="kpi-item"><div class="k-label">Y1 利润率</div><div class="k-val" id="margin_y1">-</div></div>
-          <div class="kpi-item"><div class="k-label">Y2 利润率</div><div class="k-val" id="margin_y2">-</div></div>
+          <div class="kpi-item"><div class="k-label" id="payback-month-label">投资回收月份</div><div class="k-val" id="payback_month">-</div></div>
+          <div class="kpi-item"><div class="k-label" id="cum-cf-24-label">24月累计现金流</div><div class="k-val" id="cum_cf_24">-</div></div>
+          <div class="kpi-item"><div class="k-label" id="margin-y1-label">Y1 利润率</div><div class="k-val" id="margin_y1">-</div></div>
+          <div class="kpi-item"><div class="k-label" id="margin-y2-label">Y2 利润率</div><div class="k-val" id="margin_y2">-</div></div>
         </div>
         <div class="recovery-bar" id="recovery_bar"></div>
       </div>
     </div>
+  </div>
+
+  <div class="bottom-actions">
+    <button class="export-btn" id="export-image-btn" data-i18n="export-image-btn" onclick="exportPDF()">📥 导出图片</button>
+    <button class="export-btn" id="export-data-btn" data-i18n="export-data-btn" onclick="exportData()">📥 导出 JSON</button>
+    <button class="export-btn" id="import-data-btn" data-i18n="import-data-btn" onclick="triggerImport()">📤 导入 JSON</button>
+    <input type="file" id="import-data-file" accept="application/json,.json" style="display:none" onchange="importData(event)">
   </div>
 </div>
 
 <script>
 const T = {
   zh: {
+    'page-title':'MAGIKID LAB运营模拟计算器',
     title:'🏫 MAGIKID LAB运营模拟计算器', subtitle:'输入参数 → 自动计算投入产出 | 货币: USD',
+    'btn-zh':'中文','btn-en':'English',
     'startup-title':'💰 启动成本 (Y0)',
     'lbl-franchise':'加盟费 (5年)','lbl-deposit':'押金','lbl-equipment':'设备 (机器人/iPad)',
     'lbl-furniture':'办公家具','lbl-signage':'招牌','lbl-improvement':'装修','lbl-rent-deposit':'房租押金',
     'lbl-insurance':'保险费用 (预估)','lbl-license':'公司开设/许可证/City审核等 (预估)','lbl-cpa':'财务CPA及软件费用 (预估)','lbl-legal':'法律费用 (预估)','lbl-training':'培训和开业费用',
     'fixed-cost-title':'🏠 每月固定成本','lbl-manager':'经理薪资 (含税险)','lbl-rent':'房租/月','lbl-utilities':'水电费/月','lbl-garbage':'垃圾费/月','lbl-supplies':'食品杂务费/月',
     'group-title':'🧑‍🤝‍🧑 小组课 Group Sessions','group-note':'每增3个会员 → +$200/月教师费（按季展示）',
-    'lbl-group-monthly':'月费/人 ($)','lbl-group-cap':'会员上限',
+    'block-revenue':'💰 收入','block-cost':'📋 成本','block-growth':'📈 增长',
+    'summary-header':'📊 全年收益','summary-revenue':'年收入','summary-cost':'年成本','summary-profit':'净利润',
+    'lbl-group-monthly':'月费/人 ($)','lbl-group-cap':'会员上限','lbl-group-per3':'每3人+/月 ($)',
     'lbl-group-add1':'1-3月 新增/月','lbl-group-churn1':'1-3月 流失/月',
     'lbl-group-add2':'4-6月 新增/月','lbl-group-churn2':'4-6月 流失/月',
     'lbl-group-add3':'7-12月 新增/月','lbl-group-churn3':'7-12月 流失/月',
     'private-title':'🎯 AI竞赛班 初中组/高中组','private-note':'每增4人+$320/月成本；上限16人',
-    'lbl-private-monthly':'月费/人 ($)','lbl-private-cost':'成本/人/月 ($)',
+    'lbl-private-monthly':'月费/人 ($)','lbl-private-cost':'每4人+/月 ($)',
     'lbl-private-add':'每月新增','lbl-private-cap':'上限 (人)',
     'vex-title':'🤖 VEX IQ 竞赛队','vex-note':'初期教练费$1000/月；每增4人 +$1000/月教练费 +$1000全年设备费',
     'lbl-vex-monthly':'月费/人 ($)','lbl-vex-cap':'成员上限','lbl-vex-add':'每月新增成员',
@@ -489,15 +856,18 @@ const T = {
     'ai-title':'🧠 AI 竞赛队','ai-note':'每增3人 +$1000/月教练费 +$2000全年设备费；上限18人',
     'lbl-ai-monthly':'月费/人 ($)','lbl-ai-cap':'成员上限','lbl-ai-add':'每月新增成员',
     'lbl-ai-coach-per3':'每3人增加教练费/月','lbl-ai-equip-per3':'每3人增加设备费/年',
-    'camp-title':'⛺ CAMP (夏令营/冬令营/感恩节等)','camp-note':'收入 = 总天数 × 每天人数 × 学员日费；老师成本 = 总天数 × 1名老师 × 老师日费',
+    'camp-title':'⛺ CAMP (夏令营/冬令营/感恩节等)','camp-note':'CAMP分布: 2月5天/3月5天/6月15天/7月20天/8月20天/11月4天/12月15天 共84天',
     'lbl-camp-days':'总天数','lbl-camp-students':'每天学员人数',
-    'lbl-camp-daily':'学员日费/人 ($)','lbl-camp-teacher':'老师日费 ($)',
+    'lbl-camp-daily':'学员日费/人 ($)','lbl-camp-teacher':'老师日费/人 ($)',
     'party-title':'🎉 派对/活动','lbl-party':'每次收入 ($)','lbl-party-monthly':'每月场次',
-    'export-btn':'📥 导出参数 JSON',
+    'export-image-btn':'📥 导出图片','export-data-btn':'📥 导出 JSON','import-data-btn':'📤 导入 JSON',
+    'mobile-export-image-btn':'图片','mobile-export-data-btn':'JSON','mobile-import-data-btn':'导入','mobile-btn-zh':'CN','mobile-btn-en':'EN',
     'annual-title':'📈 Y1 年度汇总',
     'lbl-startup-total':'启动总投入 (Y0)','lbl-annual-rev':'Y1 年收入','lbl-annual-cost':'Y1 总运营成本',
     'lbl-ebitda':'Y1 EBITDA','lbl-net-cf':'Y1 净现金流 (含启动成本)',
     'lbl-end-members':'年底会员数','lbl-breakeven':'盈亏平衡/月','lbl-payback':'回本周期',
+    'cost_sub':'含教师/教练/设备费','y2-title':'📈 Year 2 月度预测 (学生 +50%)','investment-title':'🎯 投资回报分析',
+    'payback-month-label':'投资回收月份','cum-cf-24-label':'24月累计现金流','margin-y1-label':'Y1 利润率','margin-y2-label':'Y2 利润率',
     'rev-title':'💵 收入明细','teacher-title':'👨‍🏫 教师费用说明','cost-title':'📋 成本明细 (年度)',
     'quarter-title':'📊 小组课季度教师费用','monthly-title':'📅 月度现金流明细',
     months:['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'],
@@ -509,22 +879,29 @@ const T = {
     'cost-vex-coach':'VEX教练费','cost-vex-equip':'VEX设备费(年)',
     'cost-ai-coach':'AI教练费','cost-ai-equip':'AI设备费(年)',
     'cost-camp':'CAMP老师成本','payback-yr':'年','payback-over':'>5年','/mo':'/月',
-    'total':'合计','avg-members':'月底均值','instr-cost-lbl':'教师费',
+    'total':'合计','avg-members':'月底均值','instr-cost-lbl':'教师费','member-unit':'人','team-note':'🤖赛队','day-unit':'天',
+    'margin-prefix':'利润率: ','netcf-recovered':'已回本','netcf-gap':'尚未回本，差 ','recovery-progress':'累计投资回收进度',
+    'recovery-status-recovered':'已回本','recovery-status-after':'月后回本','recovery-status-not':'24月内未回本','export-failed':'导出失败: ','import-failed':'导入失败: ',
+    'payback-month-unit':'月','payback-over-24':'>24月','generating':'生成中...','importing':'导入中...','import-invalid':'不是可识别的计算器 JSON 文件','import-success':'JSON 数据已导入并重新计算'
   },
   en: {
+    'page-title':'MAGIKID LAB Operations Simulator',
     title:'🏫 MAGIKID LAB Operations Simulator', subtitle:'Enter parameters → Auto-calculate ROI | Currency: USD',
+    'btn-zh':'Chinese','btn-en':'English',
     'startup-title':'💰 Startup Costs (Y0)',
     'lbl-franchise':'Franchise Fee (5yr)','lbl-deposit':'Security Deposit','lbl-equipment':'Equipment',
     'lbl-furniture':'Furniture','lbl-signage':'Signage','lbl-improvement':'Space Improvement','lbl-rent-deposit':'Rent Deposit',
     'lbl-insurance':'Insurance (Est.)','lbl-license':'Business License/Permits/City Approval (Est.)','lbl-cpa':'CPA & Accounting Software (Est.)','lbl-legal':'Legal Fees (Est.)','lbl-training':'Training & Opening Costs',
     'fixed-cost-title':'🏠 Monthly Fixed Costs','lbl-manager':'Manager Salary','lbl-rent':'Rent/Month','lbl-utilities':'Utilities/Mo','lbl-garbage':'Garbage/Mo','lbl-supplies':'Food & Supplies/Mo',
     'group-title':'🧑‍🤝‍🧑 Group Sessions','group-note':'Every +3 members → +$200/mo instructor (by quarter)',
-    'lbl-group-monthly':'Monthly Fee/Person ($)','lbl-group-cap':'Member Cap',
+    'block-revenue':'💰 Revenue','block-cost':'📋 Cost','block-growth':'📈 Growth',
+    'summary-header':'📊 Annual Summary','summary-revenue':'Annual Revenue','summary-cost':'Annual Cost','summary-profit':'Net Profit',
+    'lbl-group-monthly':'Monthly Fee/Person ($)','lbl-group-cap':'Member Cap','lbl-group-per3':'Per +3 Students/Mo ($)',
     'lbl-group-add1':'Jan-Mar New/Mo','lbl-group-churn1':'Jan-Mar Churn/Mo',
     'lbl-group-add2':'Apr-Jun New/Mo','lbl-group-churn2':'Apr-Jun Churn/Mo',
     'lbl-group-add3':'Jul-Dec New/Mo','lbl-group-churn3':'Jul-Dec Churn/Mo',
     'private-title':'🎯 AI Competition Jr/High','private-note':'+$320/mo per 4 students; max 16',
-    'lbl-private-monthly':'Monthly Fee/Person ($)','lbl-private-cost':'Cost/Person/Month ($)',
+    'lbl-private-monthly':'Monthly Fee/Person ($)','lbl-private-cost':'Per +4 Students/Mo ($)',
     'lbl-private-add':'New/Month','lbl-private-cap':'Cap (persons)',
     'vex-title':'🤖 VEX IQ Team','vex-note':'Base coach $1000/mo; per 4 students +$1000/mo coach +$1000/yr equipment',
     'lbl-vex-monthly':'Monthly Fee/Person ($)','lbl-vex-cap':'Member Cap','lbl-vex-add':'New/Month',
@@ -532,15 +909,18 @@ const T = {
     'ai-title':'🧠 AI Competition Team','ai-note':'Per 3 students +$1000/mo coach +$2000/yr equipment; max 18',
     'lbl-ai-monthly':'Monthly Fee/Person ($)','lbl-ai-cap':'Member Cap','lbl-ai-add':'New/Month',
     'lbl-ai-coach-per3':'+Coach per 3/Mo','lbl-ai-equip-per3':'+Equipment per 3/Yr',
-    'camp-title':'⛺ CAMP (Summer/Winter/Thanksgiving Camps)','camp-note':'Revenue = Total Days × Students/Day × Student Rate; Teacher Cost = Total Days × 1 Teacher × Teacher Rate',
+    'camp-title':'⛺ CAMP (Summer/Winter/Thanksgiving Camps)','camp-note':'Camp schedule: Feb 5 days / Mar 5 days / Jun 15 days / Jul 20 days / Aug 20 days / Nov 4 days / Dec 15 days, 84 days total',
     'lbl-camp-days':'Total Days','lbl-camp-students':'Students/Day',
-    'lbl-camp-daily':'Student Rate/Day ($)','lbl-camp-teacher':'Teacher Rate/Day ($)',
+    'lbl-camp-daily':'Student Rate/Day ($)','lbl-camp-teacher':'Teacher Rate/Day/Person ($)',
     'party-title':'🎉 Parties/Events','lbl-party':'Revenue/Event ($)','lbl-party-monthly':'Events/Month',
-    'export-btn':'📥 Export JSON',
+    'export-image-btn':'📥 Export Image','export-data-btn':'📥 Export JSON','import-data-btn':'📤 Import JSON',
+    'mobile-export-image-btn':'Image','mobile-export-data-btn':'JSON','mobile-import-data-btn':'Import','mobile-btn-zh':'CN','mobile-btn-en':'EN',
     'annual-title':'📈 Y1 Annual Summary',
     'lbl-startup-total':'Total Startup Cost (Y0)','lbl-annual-rev':'Y1 Annual Revenue','lbl-annual-cost':'Y1 Total Operating Cost',
     'lbl-ebitda':'Y1 EBITDA','lbl-net-cf':'Y1 Net Cash Flow (incl. startup)',
     'lbl-end-members':'Year-End Members','lbl-breakeven':'Breakeven/Month','lbl-payback':'Payback Period',
+    'cost_sub':'Includes teachers/coaches/equipment','y2-title':'📈 Year 2 Monthly Forecast (+50% Students)','investment-title':'🎯 Return Analysis',
+    'payback-month-label':'Payback Month','cum-cf-24-label':'24-Month Cumulative Cash Flow','margin-y1-label':'Y1 Margin','margin-y2-label':'Y2 Margin',
     'rev-title':'💵 Revenue Breakdown','teacher-title':'👨‍🏫 Teacher Cost Breakdown','cost-title':'📋 Cost Breakdown (Annual)',
     'quarter-title':'📊 Group Session Quarterly Instructor Cost','monthly-title':'📅 Monthly Cash Flow',
     months:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
@@ -552,26 +932,69 @@ const T = {
     'cost-vex-coach':'VEX Coach','cost-vex-equip':'VEX Equipment (yr)',
     'cost-ai-coach':'AI Coach','cost-ai-equip':'AI Equipment (yr)',
     'cost-camp':'CAMP Teacher Cost','payback-yr':'yrs','payback-over':'>5yrs','/mo':'/mo',
-    'total':'Total','avg-members':'Avg Members','instr-cost-lbl':'Instructor',
+    'total':'Total','avg-members':'Avg Members','instr-cost-lbl':'Instructor','member-unit':' members','team-note':'🤖 Team','day-unit':'d',
+    'margin-prefix':'Margin: ','netcf-recovered':'Recovered','netcf-gap':'Not yet recovered, gap ','recovery-progress':'Investment Recovery Progress',
+    'recovery-status-recovered':'Recovered','recovery-status-after':'mo to recover','recovery-status-not':'Not recovered in 24mo','export-failed':'Export failed: ','import-failed':'Import failed: ',
+    'payback-month-unit':'mo','payback-over-24':'>24mo','generating':'Generating...','importing':'Importing...','import-invalid':'This is not a compatible calculator JSON file','import-success':'JSON data imported and recalculated'
   }
 };
 
 let lang = 'zh';
+function syncResponsiveHeaderLabels() {
+  const isMobileHeader = window.matchMedia('(max-width: 768px)').matches;
+  const labels = T[lang];
+
+  const topButtons = [
+    ['top-export-image-btn', isMobileHeader ? labels['mobile-export-image-btn'] : labels['export-image-btn']],
+    ['top-export-data-btn', isMobileHeader ? labels['mobile-export-data-btn'] : labels['export-data-btn']],
+    ['top-import-data-btn', isMobileHeader ? labels['mobile-import-data-btn'] : labels['import-data-btn']]
+  ];
+
+  topButtons.forEach(([id, text]) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = text;
+  });
+
+  const zhBtn = document.getElementById('btn-zh');
+  const enBtn = document.getElementById('btn-en');
+  if (zhBtn) zhBtn.textContent = isMobileHeader ? labels['mobile-btn-zh'] : labels['btn-zh'];
+  if (enBtn) enBtn.textContent = isMobileHeader ? labels['mobile-btn-en'] : labels['btn-en'];
+}
+
 function setLang(l) {
   lang = l;
   document.getElementById('btn-zh').classList.toggle('active', l==='zh');
   document.getElementById('btn-en').classList.toggle('active', l==='en');
+  document.title = T[l]['page-title'] || T[l].title;
   // Only update non-input elements (labels, divs, etc)
   Object.keys(T[l]).forEach(k => { 
     const el = document.getElementById(k); 
     if(el && el.tagName !== 'INPUT') el.textContent = T[l][k]; 
   });
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.dataset.i18n;
+    if (Object.prototype.hasOwnProperty.call(T[l], key)) el.textContent = T[l][key];
+  });
+  syncResponsiveHeaderLabels();
   calculate();
 }
 
 const $ = id => parseFloat(document.getElementById(id).value) || 0;
 const fmt = v => '$' + Math.round(v).toLocaleString();
 const fmtK = v => (v >= 0 ? '+' : '') + '$' + (v/1000).toFixed(1) + 'k';
+
+function renderResponsiveTable(headers, rows, className = 'bd-table responsive-mobile') {
+  return `
+    <thead><tr>${headers.map(header => `<th>${header}</th>`).join('')}</tr></thead>
+    <tbody>
+      ${rows.map(row => `
+        <tr${row.className ? ` class="${row.className}"` : ''}>
+          ${row.cells.map((cell, index) => `<td data-label="${headers[index]}">${cell}</td>`).join('')}
+        </tr>
+      `).join('')}
+    </tbody>
+  `;
+}
 
 function calculate() {
   const t = T[lang];
@@ -699,9 +1122,9 @@ function calculate() {
   document.getElementById('annual_rev_sub').textContent = (lang==='zh'?'月均 ':'Mo Avg ') + fmt(totalRev/12);
   document.getElementById('annual_cost').textContent = fmt(totalCost);
   document.getElementById('ebitda').textContent = fmt(ebitda);
-  document.getElementById('ebitda_margin').textContent = (lang==='zh'?'利润率: ':'Margin: ') + margin + '%';
+  document.getElementById('ebitda_margin').textContent = t['margin-prefix'] + margin + '%';
   document.getElementById('net_cf').textContent = fmt(netCF);
-  document.getElementById('net_cf_sub').textContent = netCF >= 0 ? '✅ ' + (lang==='zh'?'已回本':'Profitable') : (lang==='zh'?'尚未回本，差 ':'Not yet recovered, gap ') + fmt(-netCF);
+  document.getElementById('net_cf_sub').textContent = netCF >= 0 ? '✅ ' + t['netcf-recovered'] : t['netcf-gap'] + fmt(-netCF);
   document.getElementById('end_members').textContent = Math.round(endMembers);
   document.getElementById('breakeven').textContent = fmt(breakevenMo) + t['/mo'];
   document.getElementById('payback').textContent = payback;
@@ -764,11 +1187,14 @@ function calculate() {
     [t['rev-camp'], fmt(totCampRev), ((totCampRev/totalRev)*100||0).toFixed(1)+'%'],
     [t['rev-party'], fmt(totPartyRev), ((totPartyRev/totalRev)*100||0).toFixed(1)+'%'],
   ];
-  document.getElementById('rev-table').innerHTML = `
-    <tr><th>${lang==='zh'?'收入来源':'Source'}</th><th>${lang==='zh'?'年度':'Annual'}</th><th>%</th></tr>
-    ${revRows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join('')}
-    <tr class="total-row"><td>${t['total']}</td><td>${fmt(totalRev)}</td><td>100%</td></tr>
-  `;
+  const revHeaders = [lang==='zh'?'收入来源':'Source', lang==='zh'?'年度':'Annual', '%'];
+  document.getElementById('rev-table').innerHTML = renderResponsiveTable(
+    revHeaders,
+    [
+      ...revRows.map(r => ({ cells: r })),
+      { className: 'total-row', cells: [t['total'], fmt(totalRev), '100%'] }
+    ]
+  );
 
   // Teacher cost breakdown table
   const groupInstrRule = lang==='zh'?'每3人+$200/月':'+$200/mo per 3 students';
@@ -777,15 +1203,18 @@ function calculate() {
   const aiCoachRule = lang==='zh'?'每3人+$1,000/月 + $2,000/年设备':'+$1,000/mo per 3 + $2,000/yr equip';
   const campRule = lang==='zh'?'$150/天×1名老师（固定）':'$150/day × 1 teacher (fixed)';
   
-  document.getElementById('teacher-table').innerHTML = `
-    <tr><th>${lang==='zh'?'教师费用项目':'Teacher Cost Item'}</th><th>${lang==='zh'?'计算规则':'Calculation Rule'}</th><th>${lang==='zh'?'年度':'Annual'}</th></tr>
-    <tr><td>${lang==='zh'?'小组课教师':'Group Class Teacher'}</td><td>${groupInstrRule}<br><small>${lang==='zh'?`Q1:${fmt(qGroupInstr[0])} / Q2:${fmt(qGroupInstr[1])} / Q3:${fmt(qGroupInstr[2])} / Q4:${fmt(qGroupInstr[3])}`:`Q1:${fmt(qGroupInstr[0])} / Q2:${fmt(qGroupInstr[1])} / Q3:${fmt(qGroupInstr[2])} / Q4:${fmt(qGroupInstr[3])}`}</small></td><td>${fmt(totGroupInstr)}</td></tr>
-    <tr><td>${lang==='zh'?'AI竞赛班教师':'AI Competition Teacher'}</td><td>${privInstrRule}</td><td>${fmt(totPrivCost)}</td></tr>
-    <tr><td>${lang==='zh'?'VEX IQ 教练':'VEX IQ Coach'}</td><td>${vexCoachRule}</td><td>${fmt(totVexCoach + vexEquipYr())}</td></tr>
-    <tr><td>${lang==='zh'?'AI 赛队教练':'AI Team Coach'}</td><td>${aiCoachRule}</td><td>${fmt(totAiCoach + aiEquipYr())}</td></tr>
-    <tr><td>${lang==='zh'?'夏令营老师':'Summer Camp Teacher'}</td><td>${campRule}</td><td>${fmt(totCampCost)}</td></tr>
-    <tr class="total-row"><td>${lang==='zh'?'教师费用合计':'Teacher Cost Total'}</td><td></td><td>${fmt(totGroupInstr+totPrivCost+totVexCoach+vexEquipYr()+totAiCoach+aiEquipYr()+totCampCost)}</td></tr>
-  `;
+  const teacherHeaders = [lang==='zh'?'教师费用项目':'Teacher Cost Item', lang==='zh'?'计算规则':'Calculation Rule', lang==='zh'?'年度':'Annual'];
+  document.getElementById('teacher-table').innerHTML = renderResponsiveTable(
+    teacherHeaders,
+    [
+      { cells: [lang==='zh'?'小组课教师':'Group Class Teacher', `${groupInstrRule}<br><small>Q1:${fmt(qGroupInstr[0])} / Q2:${fmt(qGroupInstr[1])} / Q3:${fmt(qGroupInstr[2])} / Q4:${fmt(qGroupInstr[3])}</small>`, fmt(totGroupInstr)] },
+      { cells: [lang==='zh'?'AI竞赛班教师':'AI Competition Teacher', privInstrRule, fmt(totPrivCost)] },
+      { cells: [lang==='zh'?'VEX IQ 教练':'VEX IQ Coach', vexCoachRule, fmt(totVexCoach + vexEquipYr())] },
+      { cells: [lang==='zh'?'AI 赛队教练':'AI Team Coach', aiCoachRule, fmt(totAiCoach + aiEquipYr())] },
+      { cells: [lang==='zh'?'夏令营老师':'Summer Camp Teacher', campRule, fmt(totCampCost)] },
+      { className: 'total-row', cells: [lang==='zh'?'教师费用合计':'Teacher Cost Total', '&nbsp;', fmt(totGroupInstr+totPrivCost+totVexCoach+vexEquipYr()+totAiCoach+aiEquipYr()+totCampCost)] }
+    ]
+  );
 
   // Cost table
   const costRows = [
@@ -801,11 +1230,14 @@ function calculate() {
     [t['cost-camp'], fmt(totCampCost)],
     [t['cost-royalty'], fmt(totRoyalty)],
   ];
-  document.getElementById('cost-table').innerHTML = `
-    <tr><th>${lang==='zh'?'成本项目':'Cost Item'}</th><th>${lang==='zh'?'年度':'Annual'}</th></tr>
-    ${costRows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join('')}
-    <tr class="total-row"><td>${t['total']}</td><td>${fmt(totalCost)}</td></tr>
-  `;
+  const costHeaders = [lang==='zh'?'成本项目':'Cost Item', lang==='zh'?'年度':'Annual'];
+  document.getElementById('cost-table').innerHTML = renderResponsiveTable(
+    costHeaders,
+    [
+      ...costRows.map(r => ({ cells: r })),
+      { className: 'total-row', cells: [t['total'], fmt(totalCost)] }
+    ]
+  );
 
   // Quarterly group instructor
   const qLabels = t['quarters'];
@@ -813,7 +1245,7 @@ function calculate() {
     <div class="q-item">
       <div class="q-label">${qLabels[q]}</div>
       <div class="q-rev">${fmt(qGroupInstr[q])} <small>${t['instr-cost-lbl']}</small></div>
-      <div class="q-cost">${t['avg-members']}: ${Math.round(qGroupMembers[q]/3)}人</div>
+      <div class="q-cost">${t['avg-members']}: ${Math.round(qGroupMembers[q]/3)}${t['member-unit']}</div>
     </div>
   `).join('');
 
@@ -823,8 +1255,8 @@ function calculate() {
     const cf = mCF[i];
     const campDays = [0,5,5,0,0,15,20,20,0,0,4,15][i];
     const isTeamMonth = i >= 5;
-    const note = (campDays > 0 ? `<div style="font-size:9px;color:#9b59b6;">🏕️${campDays}天</div>` : '') + 
-                 (isTeamMonth && vexCum > 0 ? `<div style="font-size:9px;color:#3498db;">🤖赛队</div>` : '');
+    const note = (campDays > 0 ? `<div style="font-size:9px;color:#9b59b6;">🏕️${campDays}${t['day-unit']}</div>` : '') + 
+                 (isTeamMonth && vexCum > 0 ? `<div style="font-size:9px;color:#3498db;">${t['team-note']}</div>` : '');
     return `<div class="month-item ${cf>=0?'positive':'negative'}">
       <div class="m-name">${m}</div>
       <div class="m-rev">${fmt(mRev[i])}</div>
@@ -875,8 +1307,8 @@ function calculate() {
     const cf = m2CF[i];
     const campDays = [0,5,5,0,0,15,20,20,0,0,4,15][i];
     const isTeamMonth = i >= 5;
-    const note = (campDays > 0 ? `<div style="font-size:9px;color:#9b59b6;">🏕️${campDays}天</div>` : '') + 
-                 (isTeamMonth && y2VexCum > 0 ? `<div style="font-size:9px;color:#3498db;">🤖赛队</div>` : '');
+    const note = (campDays > 0 ? `<div style="font-size:9px;color:#9b59b6;">🏕️${campDays}${t['day-unit']}</div>` : '') + 
+                 (isTeamMonth && y2VexCum > 0 ? `<div style="font-size:9px;color:#3498db;">${t['team-note']}</div>` : '');
     return `<div class="month-item ${cf>=0?'positive':'negative'}">
       <div class="m-name">${m}</div>
       <div class="m-rev">${fmt(m2Rev[i])}</div>
@@ -888,7 +1320,7 @@ function calculate() {
   
   // Update investment recovery
   const total24CF = allCF.reduce((a,b)=>a+b,0) - startup;
-  document.getElementById('payback_month').textContent = paybackMo ? `${paybackMo} ${lang==='zh'?'月':'mo'}` : '>24mo';
+  document.getElementById('payback_month').textContent = paybackMo ? `${paybackMo} ${t['payback-month-unit']}` : t['payback-over-24'];
   document.getElementById('cum_cf_24').textContent = fmt(total24CF + startup);
   document.getElementById('margin_y1').textContent = margin1;
   document.getElementById('margin_y2').textContent = margin2;
@@ -898,8 +1330,8 @@ function calculate() {
   document.getElementById('recovery_bar').innerHTML = `
     <div style="margin-top:12px;">
       <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">
-        <span>${lang==='zh'?'累计投资回收进度':'Investment Recovery Progress'}</span>
-        <span>${paybackMo ? (startup + cumCF >= 0 ? '✅ ' + (lang==='zh'?'已回本':'Recovered') : (paybackMo + ' ' + (lang==='zh'?'月后回本':'mo to recover'))) : (lang==='zh'?'24月内未回本':'Not recovered in 24mo')}</span>
+        <span>${t['recovery-progress']}</span>
+        <span>${paybackMo ? (startup + cumCF >= 0 ? '✅ ' + t['recovery-status-recovered'] : (paybackMo + ' ' + t['recovery-status-after'])) : t['recovery-status-not']}</span>
       </div>
       <div style="background:#e0e0e0;border-radius:8px;height:20px;overflow:hidden;">
         <div style="background:${startup + cumCF >= 0 ? '#27ae60' : '#3498db'};height:100%;width:${recoveryPct}%;transition:width 0.5s;"></div>
@@ -908,44 +1340,179 @@ function calculate() {
   `;
 }
 
+function buildExportPayload() {
+  const text = id => {
+    const el = document.getElementById(id);
+    return el ? el.textContent.trim() : '';
+  };
+
+  const inputs = Object.fromEntries(
+    Array.from(document.querySelectorAll('input[type="number"]')).map(input => [input.id, input.value])
+  );
+
+  return {
+    schemaVersion: 1,
+    generatedAt: new Date().toISOString(),
+    language: lang,
+    currency: 'USD',
+    inputs,
+    summary: {
+      startupTotal: text('startup_total'),
+      annualRevenue: text('annual_rev'),
+      annualCost: text('annual_cost'),
+      ebitda: text('ebitda'),
+      netCashFlow: text('net_cf'),
+      yearEndMembers: text('end_members'),
+      breakevenPerMonth: text('breakeven'),
+      paybackPeriod: text('payback')
+    },
+    programSummaries: {
+      group: {
+        annualRevenue: text('group-summary-rev'),
+        annualCost: text('group-summary-cost'),
+        netProfit: text('group-summary-profit')
+      },
+      private: {
+        annualRevenue: text('private-summary-rev'),
+        annualCost: text('private-summary-cost'),
+        netProfit: text('private-summary-profit')
+      },
+      vex: {
+        annualRevenue: text('vex-summary-rev'),
+        annualCost: text('vex-summary-cost'),
+        netProfit: text('vex-summary-profit')
+      },
+      ai: {
+        annualRevenue: text('ai-summary-rev'),
+        annualCost: text('ai-summary-cost'),
+        netProfit: text('ai-summary-profit')
+      },
+      camp: {
+        annualRevenue: text('camp-summary-rev'),
+        annualCost: text('camp-summary-cost'),
+        netProfit: text('camp-summary-profit')
+      },
+      party: {
+        annualRevenue: text('party-summary-rev'),
+        annualCost: text('party-summary-cost'),
+        netProfit: text('party-summary-profit')
+      }
+    }
+  };
+}
+
 function exportData() {
-  // Use html2canvas to capture the whole page as image
-  const btn = document.getElementById('export-btn');
+  const btn = document.getElementById('export-data-btn');
   const originalText = btn.textContent;
-  btn.textContent = lang==='zh'?'生成中...':'Generating...';
-  
-  // Hide the button temporarily
-  btn.style.display = 'none';
-  
-  html2canvas(document.body, {
-    scale: 2,
-    useCORS: true,
-    allowTaint: true,
-    backgroundColor: '#f5f7fa'
-  }).then(canvas => {
-    btn.style.display = '';
-    btn.textContent = originalText;
-    
-    // Download as PNG
+  btn.textContent = T[lang]['generating'];
+
+  try {
+    const exportPayload = buildExportPayload();
+    const blob = new Blob([JSON.stringify(exportPayload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
-    link.download = 'Magikid_Lab_Financial_Model.png';
-    link.href = canvas.toDataURL('image/png');
+    link.download = 'Magikid_Lab_Financial_Model.json';
+    link.href = url;
     link.click();
+    URL.revokeObjectURL(url);
+  } catch (err) {
+    alert(T[lang]['export-failed'] + err);
+  } finally {
+    btn.textContent = originalText;
+  }
+}
+
+function triggerImport() {
+  document.getElementById('import-data-file').click();
+}
+
+function prepareCaptureClone(clonedDoc) {
+  const clonedWindow = clonedDoc.defaultView;
+  if (!clonedWindow) return;
+
+  clonedDoc.querySelectorAll('.header-actions, #export-image-btn, #export-data-btn, #import-data-btn, #import-data-file').forEach(el => {
+    el.style.display = 'none';
+  });
+
+  clonedDoc.querySelectorAll('input[type="number"]').forEach(input => {
+    const computed = clonedWindow.getComputedStyle(input);
+    const replacement = clonedDoc.createElement('div');
+
+    replacement.textContent = input.value || '';
+    replacement.setAttribute('data-capture-input', 'true');
+
+    Array.from(computed).forEach(prop => {
+      replacement.style.setProperty(prop, computed.getPropertyValue(prop), computed.getPropertyPriority(prop));
+    });
+
+    replacement.style.display = 'flex';
+    replacement.style.alignItems = 'center';
+    replacement.style.width = computed.width;
+    replacement.style.height = computed.height;
+    replacement.style.minHeight = computed.height;
+    replacement.style.whiteSpace = 'pre';
+    replacement.style.overflow = 'hidden';
+    replacement.style.lineHeight = computed.height;
+    replacement.style.userSelect = 'none';
+
+    input.replaceWith(replacement);
   });
 }
 
-function exportPDF() {
-  const btn = document.querySelector('.export-btn');
+async function importData(event) {
+  const fileInput = event.target;
+  const file = fileInput.files && fileInput.files[0];
+  if (!file) return;
+
+  const btn = document.getElementById('import-data-btn');
   const originalText = btn.textContent;
-  btn.textContent = lang==='zh'?'生成中...':'Generating...';
-  btn.style.display = 'none';
+  btn.textContent = T[lang]['importing'];
+
+  try {
+    const raw = await file.text();
+    const parsed = JSON.parse(raw);
+    const inputs = parsed && typeof parsed === 'object' ? parsed.inputs : null;
+
+    if (!inputs || typeof inputs !== 'object') {
+      throw new Error(T[lang]['import-invalid']);
+    }
+
+    Object.entries(inputs).forEach(([id, value]) => {
+      const input = document.getElementById(id);
+      if (input && input.tagName === 'INPUT' && input.type === 'number') {
+        input.value = value;
+      }
+    });
+
+    if (parsed.language && T[parsed.language]) {
+      setLang(parsed.language);
+    } else {
+      calculate();
+    }
+
+    alert(T[lang]['import-success']);
+  } catch (err) {
+    alert(T[lang]['import-failed'] + err.message);
+  } finally {
+    btn.textContent = originalText;
+    fileInput.value = '';
+  }
+}
+
+function exportPDF() {
+  const exportRoot = document.querySelector('.container') || document.body;
+  const btn = document.getElementById('export-image-btn');
+  const originalText = btn.textContent;
+  btn.textContent = T[lang]['generating'];
+  btn.disabled = true;
   
-  html2canvas(document.body, {
+  html2canvas(exportRoot, {
     scale: 2,
     useCORS: true,
-    backgroundColor: '#f5f7fa'
+    backgroundColor: '#f5f7fa',
+    onclone: prepareCaptureClone
   }).then(canvas => {
-    btn.style.display = '';
+    btn.disabled = false;
     btn.textContent = originalText;
     
     const link = document.createElement('a');
@@ -953,13 +1520,15 @@ function exportPDF() {
     link.href = canvas.toDataURL('image/png');
     link.click();
   }).catch(err => {
-    btn.style.display = '';
+    btn.disabled = false;
     btn.textContent = originalText;
-    alert('Export failed: ' + err);
+    alert(T[lang]['export-failed'] + err);
   });
 }
 
 document.querySelectorAll('input').forEach(i => i.addEventListener('input', calculate));
+window.addEventListener('resize', syncResponsiveHeaderLabels);
+syncResponsiveHeaderLabels();
 calculate();
 </script>
 </body>
