@@ -16,6 +16,7 @@
     .header-row { display: flex; justify-content: space-between; align-items: center; padding: 0 24px; gap: 16px; }
     .header-actions { display: flex; align-items: center; justify-content: flex-end; gap: 10px; flex-wrap: wrap; }
     .quick-actions { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+    .mobile-divider { display: none; width: 1px; background: linear-gradient(180deg, rgba(46,134,171,0.08), rgba(46,134,171,0.4), rgba(46,134,171,0.08)); border-radius: 999px; justify-self: center; }
     .lang-toggle { display: flex; gap: 6px; }
     .lang-btn { background: white; border: 2px solid #ddd; color: #666; padding: 6px 14px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.2s; }
     .lang-btn:hover { border-color: #2E86AB; color: #2E86AB; }
@@ -406,13 +407,22 @@
 
       .header-actions {
         display: grid;
-        grid-template-columns: repeat(5, minmax(0, 1fr));
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 10px minmax(0, 1fr) minmax(0, 1fr);
         gap: 4px;
         align-items: stretch;
       }
 
       .quick-actions {
         display: contents;
+      }
+
+      .mobile-divider {
+        display: block;
+        align-self: stretch;
+      }
+
+      #top-export-image-btn {
+        display: none;
       }
 
       .quick-btn {
@@ -484,6 +494,7 @@
           <button class="quick-btn" id="top-export-data-btn" data-i18n="export-data-btn" onclick="exportData()">📥 导出 JSON</button>
           <button class="quick-btn" id="top-import-data-btn" data-i18n="import-data-btn" onclick="triggerImport()">📤 导入 JSON</button>
         </div>
+        <div class="mobile-divider" aria-hidden="true"></div>
         <div class="lang-toggle">
           <button class="lang-btn active" id="btn-zh" onclick="setLang('zh')">中文</button>
           <button class="lang-btn" id="btn-en" onclick="setLang('en')">English</button>
@@ -861,7 +872,7 @@ const T = {
     'lbl-camp-daily':'学员日费/人 ($)','lbl-camp-teacher':'老师日费/人 ($)',
     'party-title':'🎉 派对/活动','lbl-party':'每次收入 ($)','lbl-party-monthly':'每月场次',
     'export-image-btn':'📥 导出图片','export-data-btn':'📥 导出 JSON','import-data-btn':'📤 导入 JSON',
-    'mobile-export-image-btn':'图片','mobile-export-data-btn':'JSON','mobile-import-data-btn':'导入','mobile-btn-zh':'CN','mobile-btn-en':'EN',
+    'mobile-export-image-btn':'图片','mobile-export-data-btn':'导出','mobile-import-data-btn':'导入','mobile-btn-zh':'CN','mobile-btn-en':'EN',
     'annual-title':'📈 Y1 年度汇总',
     'lbl-startup-total':'启动总投入 (Y0)','lbl-annual-rev':'Y1 年收入','lbl-annual-cost':'Y1 总运营成本',
     'lbl-ebitda':'Y1 EBITDA','lbl-net-cf':'Y1 净现金流 (含启动成本)',
@@ -914,7 +925,7 @@ const T = {
     'lbl-camp-daily':'Student Rate/Day ($)','lbl-camp-teacher':'Teacher Rate/Day/Person ($)',
     'party-title':'🎉 Parties/Events','lbl-party':'Revenue/Event ($)','lbl-party-monthly':'Events/Month',
     'export-image-btn':'📥 Export Image','export-data-btn':'📥 Export JSON','import-data-btn':'📤 Import JSON',
-    'mobile-export-image-btn':'Image','mobile-export-data-btn':'JSON','mobile-import-data-btn':'Import','mobile-btn-zh':'CN','mobile-btn-en':'EN',
+    'mobile-export-image-btn':'Image','mobile-export-data-btn':'Export','mobile-import-data-btn':'Import','mobile-btn-zh':'CN','mobile-btn-en':'EN',
     'annual-title':'📈 Y1 Annual Summary',
     'lbl-startup-total':'Total Startup Cost (Y0)','lbl-annual-rev':'Y1 Annual Revenue','lbl-annual-cost':'Y1 Total Operating Cost',
     'lbl-ebitda':'Y1 EBITDA','lbl-net-cf':'Y1 Net Cash Flow (incl. startup)',
@@ -940,6 +951,18 @@ const T = {
 };
 
 let lang = 'zh';
+const LANG_STORAGE_KEY = 'magikid-lab-calculator-lang';
+
+function getInitialLang() {
+  try {
+    const savedLang = localStorage.getItem(LANG_STORAGE_KEY);
+    if (savedLang && T[savedLang]) return savedLang;
+  } catch (err) {
+    // Ignore storage access issues and fall back to default language.
+  }
+  return 'zh';
+}
+
 function syncResponsiveHeaderLabels() {
   const isMobileHeader = window.matchMedia('(max-width: 768px)').matches;
   const labels = T[lang];
@@ -963,6 +986,11 @@ function syncResponsiveHeaderLabels() {
 
 function setLang(l) {
   lang = l;
+  try {
+    localStorage.setItem(LANG_STORAGE_KEY, l);
+  } catch (err) {
+    // Ignore storage access issues and continue applying the selected language.
+  }
   document.getElementById('btn-zh').classList.toggle('active', l==='zh');
   document.getElementById('btn-en').classList.toggle('active', l==='en');
   document.title = T[l]['page-title'] || T[l].title;
@@ -1528,8 +1556,7 @@ function exportPDF() {
 
 document.querySelectorAll('input').forEach(i => i.addEventListener('input', calculate));
 window.addEventListener('resize', syncResponsiveHeaderLabels);
-syncResponsiveHeaderLabels();
-calculate();
+setLang(getInitialLang());
 </script>
 </body>
 </html>
